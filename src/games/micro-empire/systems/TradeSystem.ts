@@ -45,7 +45,7 @@ export class TradeSystem {
 
   private generateOffers(season: number) {
     this.offers = [];
-    const tradeable: ResourceType[] = ['food', 'wood', 'stone', 'iron', 'gold'];
+    const tradeable: ResourceType[] = ['food', 'wood', 'stone', 'iron', 'gold', 'knowledge'];
     const numOffers = 3 + Math.floor(Math.random() * 2);
 
     for (let i = 0; i < numOffers; i++) {

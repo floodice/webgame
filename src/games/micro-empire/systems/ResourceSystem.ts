@@ -87,6 +87,10 @@ export class ResourceSystem {
     const merchants = pop.workers.merchant ?? 0;
     newRates.gold += merchants * 0.5;
 
+    // Population generates knowledge naturally (civilization progress)
+    // Every 10 people produce 0.5 knowledge/day
+    newRates.knowledge += Math.floor(pop.total / 10) * 0.5;
+
     const happinessMod = Math.max(0.5, Math.min(1.5, 0.5 + pop.happiness / 100));
     for (const r of ALL_RESOURCES) {
       if (newRates[r] > 0) newRates[r] *= happinessMod;
