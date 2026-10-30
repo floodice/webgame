@@ -124,6 +124,7 @@ export class Game {
     });
 
     this.bus.on('building:placed', () => this.renderer?.markBuildingDirty());
+    this.bus.on('building:completed', () => this.renderer?.markBuildingDirty());
     this.bus.on('building:upgraded', () => this.renderer?.markBuildingDirty());
     this.bus.on('building:removed', () => this.renderer?.markBuildingDirty());
   }
