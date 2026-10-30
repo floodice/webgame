@@ -114,6 +114,18 @@ export class TechSystem {
     return bonus;
   }
 
+  getStorageBonus(): number {
+    let bonus = 0;
+    for (const id of this.researched) {
+      const def = TECH_DEFS[id];
+      if (!def) continue;
+      for (const eff of def.effects) {
+        if (eff.type === 'storage') bonus += eff.value;
+      }
+    }
+    return bonus;
+  }
+
   getAllEffects(): TechEffect[] {
     const effects: TechEffect[] = [];
     for (const id of this.researched) {

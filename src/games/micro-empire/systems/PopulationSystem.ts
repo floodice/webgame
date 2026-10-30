@@ -16,7 +16,7 @@ export const JOB_LABELS: Record<JobType, string> = {
 };
 export const JOB_EFFECTS: Record<JobType, string> = {
   farmer: '🌾+0.8/天',
-  worker: '🪵+0.3 🪨+0.2/天',
+  worker: '🪵+0.3 🪨+0.2 ⚒️加速建造',
   scholar: '📚+0.4/天',
   soldier: '🛡️+3防御 🌾-0.3/天',
   merchant: '💰+0.5/天',

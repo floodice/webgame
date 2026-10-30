@@ -92,18 +92,31 @@ export class BuildingSystem {
     return true;
   }
 
-  remove(x: number, y: number): boolean {
+  remove(x: number, y: number, resources?: ResourceSystem): boolean {
     const idx = this.buildings.findIndex(b => b.x === x && b.y === y);
     if (idx < 0) return false;
     const [removed] = this.buildings.splice(idx, 1);
+
+    // Refund 50% of base cost when demolishing completed buildings
+    if (resources && removed.constructionLeft === 0) {
+      const def = BUILDING_DEFS[removed.type];
+      if (def) {
+        for (const [r, amt] of Object.entries(def.cost)) {
+          resources.add(r as ResourceType, Math.floor((amt ?? 0) * 0.5));
+        }
+      }
+    }
+
     this.bus.emit('building:removed', removed.type, x, y);
     return true;
   }
 
-  tick() {
+  tick(workerCount = 0) {
+    // Workers speed up construction: every 5 workers = +1 extra tick per day
+    const bonusTicks = Math.floor(workerCount / 5);
     for (const b of this.buildings) {
       if (b.constructionLeft > 0) {
-        b.constructionLeft--;
+        b.constructionLeft = Math.max(0, b.constructionLeft - 1 - bonusTicks);
         if (b.constructionLeft === 0) {
           this.bus.emit('building:completed', b.type, b.x, b.y);
         }

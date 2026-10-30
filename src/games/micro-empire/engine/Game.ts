@@ -234,7 +234,7 @@ export class Game {
     this.tech.tick();
     this.resources.tick(this.buildings.getAll(), timeSn.season, this.population.snapshot(), this.tech);
     this.population.tick(this.resources, this.buildings.getAll(), this.tech);
-    this.buildings.tick();
+    this.buildings.tick(this.population.workers.worker);
     this.events.tick(timeSn, this.resources, this.population, this.buildings);
     if (this.events.getActiveEvent() && !this.events.getActiveEvent()!.resolved) {
       this.paused = true;
@@ -280,7 +280,7 @@ export class Game {
   }
 
   removeBuilding(bx: number, by: number) {
-    this.buildings.remove(bx, by);
+    this.buildings.remove(bx, by, this.resources);
     this.renderer.markBuildingDirty();
     this.emitSnapshot();
   }

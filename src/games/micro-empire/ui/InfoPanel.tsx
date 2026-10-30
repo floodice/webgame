@@ -164,7 +164,7 @@ export default function InfoPanel({ selectedTile, tileType, building, onUpgrade,
               cursor: 'pointer',
             }}
           >
-            🗑 拆除
+            🗑 拆除(返还50%)
           </button>
         </div>
       )}

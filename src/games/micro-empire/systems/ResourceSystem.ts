@@ -115,8 +115,9 @@ export class ResourceSystem {
 
     this.rates = newRates;
 
+    const techStorage = tech.getStorageBonus();
     for (const r of ALL_RESOURCES) {
-      this.maxAmounts[r] = RESOURCE_DEFS[r].maxBase + storageBonus;
+      this.maxAmounts[r] = RESOURCE_DEFS[r].maxBase + storageBonus + techStorage;
     }
 
     // Each tick = 1 game day; add per-day rate directly
