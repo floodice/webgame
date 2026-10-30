@@ -11,7 +11,7 @@ export interface InvasionRecord {
 }
 
 export class MilitarySystem {
-  private nextInvasion = 150;
+  private nextInvasion = 300;
   private invasionHistory: InvasionRecord[] = [];
   private lastResult: InvasionRecord | null = null;
 
@@ -54,7 +54,7 @@ export class MilitarySystem {
       this.bus.emit('military:defeat', record);
     }
 
-    this.nextInvasion = 80 + Math.floor(Math.random() * 60);
+    this.nextInvasion = 180 + Math.floor(Math.random() * 120);
     if (time.season === 1) this.nextInvasion = Math.floor(this.nextInvasion * 0.7);
   }
 

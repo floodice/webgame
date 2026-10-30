@@ -4,9 +4,9 @@ export const MAP_H = 80;
 export const WORLD_PX_W = MAP_W * TILE_SIZE;
 export const WORLD_PX_H = MAP_H * TILE_SIZE;
 
-export const TICK_MS = 200;
+export const TICK_MS = 500;
 
-export const SEASON_DAYS = 30;
+export const SEASON_DAYS = 60;
 export const YEAR_DAYS = SEASON_DAYS * 4;
 
 export const Season = { Spring: 0, Summer: 1, Autumn: 2, Winter: 3 } as const;

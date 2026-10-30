@@ -12,7 +12,7 @@ export interface TradeOffer {
 export class TradeSystem {
   private offers: TradeOffer[] = [];
   private available = false;
-  private nextVisit = 60;
+  private nextVisit = 120;
   private visitDuration = 0;
 
   private bus: EventBus;
@@ -29,7 +29,7 @@ export class TradeSystem {
       if (this.visitDuration <= 0) {
         this.available = false;
         this.offers = [];
-        this.nextVisit = 40 + Math.floor(Math.random() * 30);
+        this.nextVisit = 90 + Math.floor(Math.random() * 60);
       }
       return;
     }
@@ -38,7 +38,7 @@ export class TradeSystem {
     if (this.nextVisit <= 0) {
       this.generateOffers(time.season);
       this.available = true;
-      this.visitDuration = 15 + Math.floor(Math.random() * 10);
+      this.visitDuration = 30 + Math.floor(Math.random() * 20);
       this.bus.emit('trade:merchant_arrived');
     }
   }

@@ -42,7 +42,7 @@ export class EventSystem {
       if (evt.condition && !evt.condition(ctx)) continue;
       if (Math.random() < evt.probability) {
         this.activeEvent = { def: evt, resolved: false };
-        this.cooldown = 80 + Math.floor(Math.random() * 70);
+        this.cooldown = 150 + Math.floor(Math.random() * 100);
         this.bus.emit('event:triggered', evt.id);
         return;
       }
