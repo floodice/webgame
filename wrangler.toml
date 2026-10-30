@@ -1,0 +1,8 @@
+name = "webgame-api"
+main = "workers/api.ts"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "GAME_KV"
+id = "0cec9bfd926845e59ac55077b9d9e9c0"
+preview_id = "9242503a05b74390b068b7c9f0edff63"
