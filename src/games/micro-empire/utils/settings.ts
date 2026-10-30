@@ -21,12 +21,10 @@ export const DEFAULT_SETTINGS: GameSettings = {
   showToasts: true,
 };
 
-export const TICK_SPEED_OPTIONS = [
-  { value: 800, label: '慢速 (0.8s/天)' },
-  { value: 500, label: '正常 (0.5s/天)' },
-  { value: 300, label: '快速 (0.3s/天)' },
-  { value: 150, label: '极速 (0.15s/天)' },
-];
+/** Tick speed range: 500ms (fastest, 0.5s/day) to 10000ms (slowest, 10s/day) */
+export const TICK_SPEED_MIN = 500;
+export const TICK_SPEED_MAX = 10000;
+export const TICK_SPEED_STEP = 50;
 
 export const AUTOSAVE_OPTIONS = [
   { value: 0, label: '关闭' },

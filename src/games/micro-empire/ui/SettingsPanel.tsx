@@ -1,6 +1,8 @@
 import {
   type GameSettings,
-  TICK_SPEED_OPTIONS,
+  TICK_SPEED_MIN,
+  TICK_SPEED_MAX,
+  TICK_SPEED_STEP,
   AUTOSAVE_OPTIONS,
 } from '../utils/settings';
 
@@ -43,27 +45,12 @@ export default function SettingsPanel({ settings, onChange, onResetTutorial, onC
           <button onClick={onClose} style={closeBtnStyle}>✕</button>
         </div>
 
-        {/* Game Speed */}
-        <Section label="🕹️ 游戏基础速度">
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {TICK_SPEED_OPTIONS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => update({ tickSpeed: opt.value })}
-                style={{
-                  ...optBtnStyle,
-                  background: settings.tickSpeed === opt.value ? 'rgba(124,77,255,0.25)' : 'rgba(255,255,255,0.05)',
-                  borderColor: settings.tickSpeed === opt.value ? 'rgba(124,77,255,0.5)' : 'rgba(255,255,255,0.1)',
-                  color: settings.tickSpeed === opt.value ? '#b388ff' : '#aaa',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ fontSize: 10, color: '#666', marginTop: 4 }}>
-            配合游戏内 1x/2x/3x 速度倍率使用
-          </div>
+        {/* Game Speed Slider */}
+        <Section label="🕹️ 游戏速度">
+          <SpeedSlider
+            tickSpeed={settings.tickSpeed}
+            onChange={v => update({ tickSpeed: v })}
+          />
         </Section>
 
         {/* Display */}
@@ -177,6 +164,95 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
           left: checked ? 20 : 2,
           transition: 'left 0.2s, background 0.2s',
         }} />
+      </div>
+    </div>
+  );
+}
+
+function SpeedSlider({ tickSpeed, onChange }: { tickSpeed: number; onChange: (v: number) => void }) {
+  // Slider value is inverted: higher slider value = faster (lower tickSpeed)
+  const sliderValue = TICK_SPEED_MIN + TICK_SPEED_MAX - tickSpeed;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(TICK_SPEED_MIN + TICK_SPEED_MAX - Number(e.target.value));
+  };
+
+  const secPerDay = tickSpeed / 1000;
+  const label = secPerDay >= 1 ? `${secPerDay.toFixed(1)}s` : `${(secPerDay * 1000).toFixed(0)}ms`;
+
+  return (
+    <div>
+      {/* Current speed display */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: 10,
+        padding: '6px 12px',
+        borderRadius: 8,
+        background: 'rgba(124,77,255,0.12)',
+        border: '1px solid rgba(124,77,255,0.25)',
+      }}>
+        <span style={{ fontSize: 20, fontWeight: 900, color: '#b388ff' }}>{label}</span>
+        <span style={{ fontSize: 11, color: '#888', marginLeft: 4 }}>/天</span>
+      </div>
+
+      {/* Slider */}
+      <div style={{ position: 'relative', padding: '0 2px' }}>
+        <input
+          type="range"
+          min={TICK_SPEED_MIN}
+          max={TICK_SPEED_MAX}
+          step={TICK_SPEED_STEP}
+          value={sliderValue}
+          onChange={handleChange}
+          style={{ width: '100%', accentColor: '#7c4dff' }}
+        />
+        {/* Track fill overlay */}
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: '100%',
+          pointerEvents: 'none',
+          background: `linear-gradient(to right, rgba(66,165,245,0.15) 0%, rgba(124,77,255,0.15) 50%, rgba(255,152,0,0.15) 100%)`,
+          borderRadius: 4,
+          zIndex: -1,
+        }} />
+      </div>
+
+      {/* Labels */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: '#666' }}>
+        <span>🐢 慢 (10s/天)</span>
+        <span>🐇 快 (0.5s/天)</span>
+      </div>
+
+      {/* Preset buttons */}
+      <div style={{ display: 'flex', gap: 4, marginTop: 8, justifyContent: 'center' }}>
+        {[
+          { ms: 10000, label: '10s' },
+          { ms: 5000, label: '5s' },
+          { ms: 2000, label: '2s' },
+          { ms: 1000, label: '1s' },
+          { ms: 500, label: '0.5s' },
+        ].map(p => (
+          <button
+            key={p.ms}
+            onClick={() => onChange(p.ms)}
+            style={{
+              padding: '3px 8px',
+              borderRadius: 6,
+              border: `1px solid ${tickSpeed === p.ms ? 'rgba(124,77,255,0.5)' : 'rgba(255,255,255,0.08)'}`,
+              background: tickSpeed === p.ms ? 'rgba(124,77,255,0.2)' : 'rgba(255,255,255,0.03)',
+              color: tickSpeed === p.ms ? '#b388ff' : '#777',
+              fontSize: 10,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ fontSize: 10, color: '#555', marginTop: 6, textAlign: 'center' }}>
+        配合游戏内 1x/2x/3x 速度倍率使用 · 拖动滑块或点击预设
       </div>
     </div>
   );
