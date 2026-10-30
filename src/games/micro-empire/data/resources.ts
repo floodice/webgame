@@ -53,7 +53,7 @@ export const RESOURCE_DEFS: Record<ResourceType, ResourceDef> = {
     labelEn: 'Gold',
     icon: '💰',
     color: '#ffc107',
-    startAmount: 50,
+    startAmount: 80,
     maxBase: 1000,
   },
   knowledge: {

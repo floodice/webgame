@@ -52,7 +52,7 @@ export class ResourceSystem {
     this.bus.emit('resource:changed');
   }
 
-  tick(buildings: PlacedBuilding[], season: number, pop: { happiness: number; workers: Record<string, number> }, tech: TechSystem) {
+  tick(buildings: PlacedBuilding[], season: number, pop: { total: number; happiness: number; workers: Record<string, number> }, tech: TechSystem) {
     const newRates: Record<ResourceType, number> = { food: 0, wood: 0, stone: 0, iron: 0, gold: 0, knowledge: 0 };
 
     let storageBonus = 0;
@@ -79,6 +79,14 @@ export class ResourceSystem {
         newRates[r as ResourceType] -= amt ?? 0;
       }
     }
+
+    // Population tax: each person generates 0.3 gold/day
+    const TAX_PER_PERSON = 0.3;
+    newRates.gold += pop.total * TAX_PER_PERSON;
+
+    // Merchants generate extra gold
+    const merchants = pop.workers.merchant ?? 0;
+    newRates.gold += merchants * 0.5;
 
     const happinessMod = Math.max(0.5, Math.min(1.5, 0.5 + pop.happiness / 100));
     for (const r of ALL_RESOURCES) {
