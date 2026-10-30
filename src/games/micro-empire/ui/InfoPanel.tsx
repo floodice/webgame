@@ -93,9 +93,10 @@ export default function InfoPanel({ selectedTile, tileType, building, onUpgrade,
           )}
           {Object.entries(bDef.upkeep).length > 0 && (
             <div style={{ fontSize: 11, color: '#f44336', marginBottom: 4 }}>
-              消耗: {Object.entries(bDef.upkeep).map(([r, amt]) =>
-                `${RESOURCE_DEFS[r as ResourceType]?.icon}${amt}`
-              ).join(' ')}
+              消耗: {Object.entries(bDef.upkeep).map(([r, amt]) => {
+                const upkeepMul = 1 + (building.level - 1) * 0.25;
+                return `${RESOURCE_DEFS[r as ResourceType]?.icon}${((amt ?? 0) * upkeepMul).toFixed(1)}`;
+              }).join(' ')}
             </div>
           )}
           {bDef.populationCapacity > 0 && (

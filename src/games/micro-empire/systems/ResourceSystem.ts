@@ -81,13 +81,28 @@ export class ResourceSystem {
       }
     }
 
+    // Worker role bonuses
+    const farmers = pop.workers.farmer ?? 0;
+    const workers = pop.workers.worker ?? 0;
+    const scholars = pop.workers.scholar ?? 0;
+    const soldiers = pop.workers.soldier ?? 0;
+    const merchants = pop.workers.merchant ?? 0;
+
+    // Farmers: +0.8 food/farmer/day
+    newRates.food += farmers * 0.8;
+    // Workers: +0.3 wood + 0.2 stone per worker/day
+    newRates.wood += workers * 0.3;
+    newRates.stone += workers * 0.2;
+    // Scholars: +0.4 knowledge/scholar/day
+    newRates.knowledge += scholars * 0.4;
+    // Soldiers: consume 0.3 food/day each (army upkeep)
+    newRates.food -= soldiers * 0.3;
+    // Merchants: +0.5 gold/merchant/day
+    newRates.gold += merchants * 0.5;
+
     // Population tax: each person generates 0.3 gold/day
     const TAX_PER_PERSON = 0.3;
     newRates.gold += pop.total * TAX_PER_PERSON;
-
-    // Merchants generate extra gold
-    const merchants = pop.workers.merchant ?? 0;
-    newRates.gold += merchants * 0.5;
 
     // Population generates knowledge naturally (civilization progress)
     // Every 10 people produce 0.5 knowledge/day

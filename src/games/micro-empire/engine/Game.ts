@@ -329,6 +329,8 @@ export class Game {
       tech: this.tech.serialize(),
       achievements: this.achievements.serialize(),
       military: this.military.serialize(),
+      events: this.events.serialize(),
+      trade: this.trade.serialize(),
     });
   }
 
@@ -343,6 +345,8 @@ export class Game {
       if (d.tech) this.tech.deserialize(d.tech);
       if (d.achievements) this.achievements.deserialize(d.achievements);
       if (d.military) this.military.deserialize(d.military);
+      if (d.events) this.events.deserialize(d.events);
+      if (d.trade) this.trade.deserialize(d.trade);
       this.renderer?.markTerrainDirty();
       this.renderer?.markBuildingDirty();
       this.emitSnapshot();

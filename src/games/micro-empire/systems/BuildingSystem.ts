@@ -45,6 +45,11 @@ export class BuildingSystem {
 
     if (this.getAt(x, y)) return { ok: false, reason: '已有建筑' };
 
+    // Fishery requires adjacent water
+    if (type === 'fishery' && this.map.countAdjacent(x, y, 'water') === 0) {
+      return { ok: false, reason: '渔场必须建在水域旁边' };
+    }
+
     if (!resources.canAfford(def.cost)) return { ok: false, reason: '资源不足' };
 
     return { ok: true, reason: '' };

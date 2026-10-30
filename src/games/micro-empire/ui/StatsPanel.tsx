@@ -1,4 +1,5 @@
 import { ACHIEVEMENT_DEFS } from '../data/achievements';
+import { TECH_DEFS } from '../data/technologies';
 import type { GameSnapshot } from '../engine/Game';
 
 interface Props {
@@ -42,7 +43,7 @@ export default function StatsPanel({ snap, onClose }: Props) {
           <StatCard label="年份" value={`第${time.year}年`} color="#ce93d8" />
           <StatCard label="天数" value={`${time.day}`} color="#90a4ae" />
           <StatCard label="建筑" value={`${completedBuildings} / ${totalBuildings}`} color="#ffb74d" />
-          <StatCard label="科技" value={`${tech.researched.length} / 18`} color="#7c4dff" />
+          <StatCard label="科技" value={`${tech.researched.length} / ${Object.keys(TECH_DEFS).length}`} color="#7c4dff" />
           <StatCard label="战斗胜率" value={military.totalBattles > 0 ? `${Math.round(military.totalWins / military.totalBattles * 100)}%` : '-'} color="#f44336" />
           <StatCard label="成就" value={`${achievements.unlocked.length} / ${achievements.total}`} color="#ffd700" />
         </div>

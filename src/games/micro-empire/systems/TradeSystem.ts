@@ -92,4 +92,20 @@ export class TradeSystem {
     this.bus.emit('trade:executed');
     return true;
   }
+
+  serialize() {
+    return {
+      nextVisit: this.nextVisit,
+      available: this.available,
+      visitDuration: this.visitDuration,
+      offers: this.offers,
+    };
+  }
+
+  deserialize(data: any) {
+    if (typeof data.nextVisit === 'number') this.nextVisit = data.nextVisit;
+    if (typeof data.available === 'boolean') this.available = data.available;
+    if (typeof data.visitDuration === 'number') this.visitDuration = data.visitDuration;
+    if (Array.isArray(data.offers)) this.offers = data.offers;
+  }
 }

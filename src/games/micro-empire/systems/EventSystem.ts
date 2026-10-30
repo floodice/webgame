@@ -97,4 +97,12 @@ export class EventSystem {
         break;
     }
   }
+
+  serialize() {
+    return { cooldown: this.cooldown };
+  }
+
+  deserialize(data: any) {
+    if (typeof data.cooldown === 'number') this.cooldown = data.cooldown;
+  }
 }

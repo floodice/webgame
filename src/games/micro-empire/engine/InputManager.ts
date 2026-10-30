@@ -3,6 +3,9 @@ import { EventBus } from './EventBus';
 
 export class InputManager {
   private dragging = false;
+  private didDrag = false;
+  private downMX = 0;
+  private downMY = 0;
   private lastMX = 0;
   private lastMY = 0;
   private keys = new Set<string>();
@@ -35,6 +38,9 @@ export class InputManager {
     on(c, 'mousedown', (e: MouseEvent) => {
       if (e.button === 0 || e.button === 2) {
         this.dragging = true;
+        this.didDrag = false;
+        this.downMX = e.clientX;
+        this.downMY = e.clientY;
         this.lastMX = e.clientX;
         this.lastMY = e.clientY;
       }
@@ -44,6 +50,9 @@ export class InputManager {
       if (this.dragging) {
         const dx = e.clientX - this.lastMX;
         const dy = e.clientY - this.lastMY;
+        if (!this.didDrag && Math.hypot(e.clientX - this.downMX, e.clientY - this.downMY) > 5) {
+          this.didDrag = true;
+        }
         this.camera.pan(-dx, -dy);
         this.lastMX = e.clientX;
         this.lastMY = e.clientY;
@@ -59,6 +68,7 @@ export class InputManager {
     });
 
     on(c, 'click', (e: MouseEvent) => {
+      if (this.didDrag) return;
       const rect = c.getBoundingClientRect();
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
