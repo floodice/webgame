@@ -2,7 +2,7 @@ import { EventBus } from '../engine/EventBus';
 import { EVENT_DEFS, type GameEventDef, type EventEffect } from '../data/events';
 import type { ResourceSystem } from './ResourceSystem';
 import type { PopulationSystem } from './PopulationSystem';
-import type { BuildingSystem } from './BuildingSystem';
+import { type BuildingSystem } from './BuildingSystem';
 
 export interface ActiveEvent {
   def: GameEventDef;
@@ -49,13 +49,13 @@ export class EventSystem {
     }
   }
 
-  resolve(choiceIndex: number, resources: ResourceSystem, population: PopulationSystem) {
+  resolve(choiceIndex: number, resources: ResourceSystem, population: PopulationSystem, buildings?: BuildingSystem) {
     if (!this.activeEvent || this.activeEvent.resolved) return;
     const choice = this.activeEvent.def.choices[choiceIndex];
     if (!choice) return;
 
     for (const eff of choice.effects) {
-      this.applyEffect(eff, resources, population);
+      this.applyEffect(eff, resources, population, buildings);
     }
 
     this.activeEvent.resolved = true;
@@ -63,7 +63,7 @@ export class EventSystem {
     this.activeEvent = null;
   }
 
-  private applyEffect(eff: EventEffect, resources: ResourceSystem, population: PopulationSystem) {
+  private applyEffect(eff: EventEffect, resources: ResourceSystem, population: PopulationSystem, buildings?: BuildingSystem) {
     switch (eff.type) {
       case 'resource':
         if (eff.target) {
@@ -77,6 +77,23 @@ export class EventSystem {
         break;
       case 'happiness':
         population.happiness = Math.max(0, Math.min(100, population.happiness + eff.value));
+        break;
+      case 'building_damage':
+        if (buildings) {
+          const all = buildings.getAll().filter(b => b.constructionLeft === 0);
+          const count = Math.min(eff.value, all.length);
+          for (let i = 0; i < count; i++) {
+            const idx = Math.floor(Math.random() * all.length);
+            const target = all[idx];
+            if (target.level > 1) {
+              target.level--;
+              this.bus.emit('building:damaged', target.type, target.x, target.y);
+            } else {
+              buildings.remove(target.x, target.y);
+            }
+            all.splice(idx, 1);
+          }
+        }
         break;
     }
   }

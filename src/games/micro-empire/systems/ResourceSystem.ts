@@ -74,8 +74,10 @@ export class ResourceSystem {
         newRates[r as ResourceType] += prod;
       }
 
+      // Upkeep scales moderately with level: +25% per extra level
+      const upkeepMul = 1 + (b.level - 1) * 0.25;
       for (const [r, amt] of Object.entries(def.upkeep)) {
-        newRates[r as ResourceType] -= amt ?? 0;
+        newRates[r as ResourceType] -= (amt ?? 0) * upkeepMul;
       }
     }
 

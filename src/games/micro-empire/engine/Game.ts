@@ -233,14 +233,15 @@ export class Game {
     const timeSn = this.time.snapshot();
     this.tech.tick();
     this.resources.tick(this.buildings.getAll(), timeSn.season, this.population.snapshot(), this.tech);
-    this.population.tick(this.resources, this.buildings.getAll());
+    this.population.tick(this.resources, this.buildings.getAll(), this.tech);
     this.buildings.tick();
     this.events.tick(timeSn, this.resources, this.population, this.buildings);
     if (this.events.getActiveEvent() && !this.events.getActiveEvent()!.resolved) {
       this.paused = true;
     }
+    this.trade.setTradeBonus(this.tech.getTradeBonus());
     this.trade.tick(timeSn);
-    this.military.tick(timeSn, this.resources, this.population, this.buildings);
+    this.military.tick(timeSn, this.resources, this.population, this.buildings, this.tech);
     this.achievements.tick(this.resources, this.buildings, this.population, this.tech, timeSn);
   }
 
@@ -292,7 +293,7 @@ export class Game {
   }
 
   resolveEvent(choiceIndex: number) {
-    this.events.resolve(choiceIndex, this.resources, this.population);
+    this.events.resolve(choiceIndex, this.resources, this.population, this.buildings);
     this.paused = false;
     this.emitSnapshot();
   }

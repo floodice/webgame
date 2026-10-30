@@ -1,6 +1,7 @@
 import { EventBus } from '../engine/EventBus';
 import type { ResourceSystem } from './ResourceSystem';
 import type { PlacedBuilding } from './BuildingSystem';
+import type { TechSystem } from './TechSystem';
 import { BUILDING_DEFS } from '../data/buildings';
 
 export type JobType = 'farmer' | 'worker' | 'scholar' | 'soldier' | 'merchant' | 'idle';
@@ -26,7 +27,7 @@ export class PopulationSystem {
     this.bus = bus;
   }
 
-  tick(resources: ResourceSystem, buildings: PlacedBuilding[]) {
+  tick(resources: ResourceSystem, buildings: PlacedBuilding[], tech?: TechSystem) {
     this.maxPop = 10;
     let buildingHappiness = 0;
     for (const b of buildings) {
@@ -37,17 +38,20 @@ export class PopulationSystem {
       buildingHappiness += def.happinessBonus * b.level;
     }
 
+    const techHappiness = tech ? tech.getHappinessBonus() : 0;
+
     const foodAmount = resources.get('food');
     const foodPerPop = this.total > 0 ? foodAmount / this.total : 100;
     const foodHappiness = Math.min(20, foodPerPop * 2);
     const crowdPenalty = this.total > this.maxPop ? (this.total - this.maxPop) * 3 : 0;
 
     this.happiness = Math.max(0, Math.min(100,
-      30 + foodHappiness + buildingHappiness - crowdPenalty
+      30 + foodHappiness + buildingHappiness + techHappiness - crowdPenalty
     ));
 
+    const techGrowth = tech ? tech.getPopGrowthBonus() : 0;
     if (foodPerPop >= 2 && this.total < this.maxPop && this.happiness >= 30) {
-      const growthRate = 0.02 * (1 + this.happiness / 100);
+      const growthRate = 0.02 * (1 + this.happiness / 100) * (1 + techGrowth);
       this.growthAccum += growthRate;
       if (this.growthAccum >= 1) {
         this.growthAccum -= 1;

@@ -184,6 +184,7 @@ export default function MicroEmpire() {
     on('building:completed', (type: string) => addToast(`🏗️ ${bName(type)} 建造完成！`, 'success'));
     on('building:upgraded', (type: string, _x: number, _y: number, level: number) => addToast(`⬆️ ${bName(type)} 升级到 ${level} 级`, 'success'));
     on('building:removed', (type: string) => addToast(`🗑️ ${bName(type)} 已拆除`, 'info'));
+    on('building:damaged', (type: string) => addToast(`💥 ${bName(type)} 被损坏降级！`, 'error'));
     const depletedCooldown: Record<string, number> = {};
     on('resource:depleted', (r: string) => {
       const now = Date.now();
@@ -287,7 +288,10 @@ export default function MicroEmpire() {
   const totalDefense = snap
     ? snap.buildings
         .filter(b => b.constructionLeft === 0)
-        .reduce((sum, b) => sum + (b.level * 3), 0) + (snap.population.workers.soldier ?? 0) * 3
+        .reduce((sum, b) => {
+          const def = BUILDING_DEFS[b.type];
+          return sum + (def ? def.defenseBonus * b.level : 0);
+        }, 0) + (snap.population.workers.soldier ?? 0) * 3
     : 0;
 
   return (

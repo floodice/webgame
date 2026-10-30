@@ -43,6 +43,12 @@ export class TradeSystem {
     }
   }
 
+  private tradeBonus = 0;
+
+  setTradeBonus(bonus: number) {
+    this.tradeBonus = bonus;
+  }
+
   private generateOffers(season: number) {
     this.offers = [];
     const tradeable: ResourceType[] = ['food', 'wood', 'stone', 'iron', 'gold', 'knowledge'];
@@ -58,8 +64,10 @@ export class TradeSystem {
       const baseRate = this.getBaseRate(sell, buy);
       const seasonMod = season === 2 ? 0.85 : season === 3 ? 1.15 : 1.0;
       const randMod = 0.8 + Math.random() * 0.4;
+      // Trade bonus from tech: reduces sell amount (better deals)
+      const tradeMod = 1 - Math.min(0.5, this.tradeBonus);
 
-      const sellAmount = Math.floor((15 + Math.random() * 25) * randMod);
+      const sellAmount = Math.floor((15 + Math.random() * 25) * randMod * tradeMod);
       const buyAmount = Math.ceil(sellAmount * baseRate * seasonMod);
 
       this.offers.push({ sellResource: sell, sellAmount, buyResource: buy, buyAmount });

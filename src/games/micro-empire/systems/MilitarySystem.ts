@@ -2,6 +2,7 @@ import { EventBus } from '../engine/EventBus';
 import type { ResourceSystem } from './ResourceSystem';
 import type { PopulationSystem } from './PopulationSystem';
 import type { BuildingSystem } from './BuildingSystem';
+import type { TechSystem } from './TechSystem';
 
 export interface InvasionRecord {
   day: number;
@@ -25,6 +26,7 @@ export class MilitarySystem {
     resources: ResourceSystem,
     population: PopulationSystem,
     buildings: BuildingSystem,
+    tech?: TechSystem,
   ) {
     this.nextInvasion--;
     if (this.nextInvasion > 0) return;
@@ -32,7 +34,8 @@ export class MilitarySystem {
     const yearFactor = Math.floor(time.day / 240) + 1;
     const scaleFactor = 1 + yearFactor * 0.15;
     const strength = Math.floor((10 + yearFactor * 10 + Math.floor(Math.random() * yearFactor * 6)) * scaleFactor);
-    const defense = buildings.totalDefense() + population.workers.soldier * 3;
+    const techDefense = tech ? tech.getDefenseBonus() : 0;
+    const defense = buildings.totalDefense() + population.workers.soldier * 3 + techDefense;
 
     const won = defense >= strength;
     const record: InvasionRecord = { day: time.day, strength, defense, won };
