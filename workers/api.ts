@@ -1,10 +1,12 @@
 /**
- * GameHub Cloudflare Worker — Global Leaderboard + Daily Challenge
+ * GameHub Cloudflare Worker — Global Leaderboard + Daily Challenge + Micro Empire Backend
  *
  * KV keys:
  *   lb:{gameId}        → top 50 all-time high scores
  *   daily:{date}       → sokoban daily challenge leaderboard
  *   stats:global       → total plays, total scores submitted
+ *   me:save:{token}:{slot}  → cloud save data
+ *   me:lb              → empire leaderboard
  */
 
 interface Env {
