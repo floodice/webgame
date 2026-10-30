@@ -14,8 +14,12 @@ import SaveLoadPanel from './ui/SaveLoadPanel';
 import LeaderboardPanel from './ui/LeaderboardPanel';
 import TutorialOverlay from './ui/TutorialOverlay';
 import StatsPanel from './ui/StatsPanel';
+import GameToast from './ui/GameToast';
 import { autoSave, loadAutoSave, saveGame, loadGame } from './utils/save';
 import { cloudSave, isCloudLoggedIn } from './utils/cloudApi';
+import { BUILDING_DEFS } from './data/buildings';
+import { RESOURCE_DEFS } from './data/resources';
+import { TECH_DEFS } from './data/technologies';
 import type { TileType } from './world/Tile';
 
 const CANVAS_STYLE: React.CSSProperties = {
@@ -24,6 +28,8 @@ const CANVAS_STYLE: React.CSSProperties = {
   display: 'block',
   imageRendering: 'pixelated',
 };
+
+const MAX_GAME_WIDTH = 1200;
 
 export default function MicroEmpire() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +47,15 @@ export default function MicroEmpire() {
   const [showTutorial, setShowTutorial] = useState(() => {
     try { return !localStorage.getItem('micro_empire_tutorial_done'); } catch { return true; }
   });
+
+  // Toast notification system
+  const [toasts, setToasts] = useState<{ id: number; text: string; type: 'info' | 'warn' | 'error' | 'success' }[]>([]);
+  const toastIdRef = useRef(0);
+  const addToast = useCallback((text: string, type: 'info' | 'warn' | 'error' | 'success' = 'info') => {
+    const id = ++toastIdRef.current;
+    setToasts(prev => [...prev.slice(-4), { id, text, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+  }, []);
 
   const pausedByPanel = useRef(false);
   const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard;
@@ -131,10 +146,44 @@ export default function MicroEmpire() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Listen for game events to show toasts
+  useEffect(() => {
+    const game = gameRef.current;
+    if (!game) return;
+    const unsubs: (() => void)[] = [];
+    const on = (evt: string, cb: (...args: any[]) => void) => { unsubs.push(game.bus.on(evt, cb)); };
+
+    const bName = (type: string) => BUILDING_DEFS[type]?.label ?? type;
+    const rName = (r: string) => RESOURCE_DEFS[r as keyof typeof RESOURCE_DEFS]?.label ?? r;
+
+    on('building:placed', (type: string) => addToast(`✅ ${bName(type)} 建造中...`, 'success'));
+    on('building:placeFail', (reason: string) => addToast(`❌ 无法放置: ${reason}`, 'error'));
+    on('building:completed', (type: string) => addToast(`🏗️ ${bName(type)} 建造完成！`, 'success'));
+    on('building:upgraded', (type: string, _x: number, _y: number, level: number) => addToast(`⬆️ ${bName(type)} 升级到 ${level} 级`, 'success'));
+    on('building:removed', (type: string) => addToast(`🗑️ ${bName(type)} 已拆除`, 'info'));
+    on('resource:depleted', (r: string) => addToast(`⚠️ ${rName(r)} 已耗尽！注意补充`, 'warn'));
+    on('season:changed', (season: number) => {
+      const names = ['🌸 春天', '☀️ 夏天', '🍂 秋天', '❄️ 冬天'];
+      addToast(`${names[season] ?? '新季节'}来了`, 'info');
+    });
+    on('tech:researched', (id: string) => addToast(`🔬 科技研发完成: ${TECH_DEFS[id]?.label ?? id}`, 'success'));
+    on('trade:merchant_arrived', () => addToast(`🏪 商人到来，可以进行贸易！`, 'info'));
+    on('military:victory', () => addToast(`⚔️ 入侵已击退！`, 'success'));
+    on('military:defeat', () => addToast(`💀 防御失败，遭受了损失！`, 'error'));
+    on('population:changed', (total: number) => {
+      if (total <= 0) addToast(`⚠️ 人口为零！需要建造住房`, 'error');
+    });
+
+    return () => { unsubs.forEach(u => u()); };
+  }, [addToast]);
+
   const game = gameRef.current;
 
   const handleSave = (slot: string) => {
-    if (game) saveGame(slot, game.serialize());
+    if (game) {
+      saveGame(slot, game.serialize());
+      addToast('💾 本地存档已保存', 'success');
+    }
   };
 
   const handleLoad = (slot: string) => {
@@ -142,6 +191,7 @@ export default function MicroEmpire() {
     if (data && game) {
       game.deserialize(data);
       setShowSave(false);
+      addToast('📂 存档已加载', 'success');
     }
   };
 
@@ -161,6 +211,7 @@ export default function MicroEmpire() {
     if (game) {
       game.deserialize(data);
       setShowSave(false);
+      addToast('☁️ 云存档已加载', 'success');
     }
   };
 
@@ -179,197 +230,239 @@ export default function MicroEmpire() {
     : 0;
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '100%',
-        height: 'calc(100vh - 60px)',
-        position: 'relative',
-        overflow: 'hidden',
-        background: '#0a0a1a',
-      }}
-    >
-      <canvas ref={canvasRef} style={CANVAS_STYLE} />
-
-      {!snap && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+    <div style={{
+      width: '100%',
+      height: 'calc(100vh - 60px)',
+      display: 'flex',
+      justifyContent: 'center',
+      background: '#06060f',
+    }}>
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          maxWidth: MAX_GAME_WIDTH,
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
           background: '#0a0a1a',
-          color: '#888',
-          fontSize: 16,
-          zIndex: 100,
-        }}>
-          正在加载微观帝国...
-        </div>
-      )}
+        }}
+      >
+        <canvas ref={canvasRef} style={CANVAS_STYLE} />
 
-      {snap && (
-        <>
+        {!snap && (
           <div style={{
             position: 'absolute',
-            top: 8,
-            left: 8,
-            right: 8,
+            inset: 0,
             display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            zIndex: 10,
-            pointerEvents: 'auto',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#0a0a1a',
+            color: '#888',
+            fontSize: 16,
+            zIndex: 100,
           }}>
-            <ResourceBar resources={snap.resources} />
-            <HUD
-              dayInSeason={snap.time.dayInSeason}
-              season={snap.time.season}
-              year={snap.time.year}
-              seasonProgress={snap.time.seasonProgress}
-              paused={snap.paused}
-              speed={snap.speed}
-              population={snap.population}
-              defense={totalDefense}
-              achievementCount={snap.achievements.unlocked.length}
-              achievementTotal={snap.achievements.total}
-              onTogglePause={() => game?.togglePause()}
-              onSetSpeed={(s) => game?.setSpeed(s)}
-              onOpenPopulation={() => setShowPopulation(true)}
-              onOpenTech={() => setShowTech(true)}
-              onOpenSave={() => setShowSave(true)}
-              onOpenTrade={() => setShowTrade(true)}
-              onOpenStats={() => setShowStats(true)}
-              onOpenLeaderboard={() => setShowLeaderboard(true)}
-              tradeAvailable={snap.tradeAvailable}
-              nextInvasion={snap.military.nextInvasion}
-            />
+            正在加载微观帝国...
           </div>
+        )}
 
-          <BuildMenu
-            placing={snap.placingBuilding}
-            onSelect={(type) => game?.setPlacingBuilding(type)}
-            resources={snap.resources}
-            researchedTechs={snap.tech.researched}
-          />
-
-          <InfoPanel
-            selectedTile={snap.selectedTile}
-            tileType={selectedTileType}
-            building={selectedBuilding ?? null}
-            onUpgrade={(x, y) => game?.upgradeBuilding(x, y)}
-            onRemove={(x, y) => game?.removeBuilding(x, y)}
-            onClose={() => { if (game) { game.selectedTile = null; game['emitSnapshot'](); } }}
-          />
-
-          <MiniMap
-            mapData={snap.map}
-            camera={game?.camera ?? { x: 0, y: 0, zoom: 1, viewW: 800, viewH: 600 } as any}
-            buildings={snap.buildings.map(b => ({ x: b.x, y: b.y }))}
-            onJump={(wx, wy) => game?.camera.moveTo(wx, wy)}
-          />
-
-          <AchievementToast unlockedIds={snap.achievements.unlocked} />
-
-          {snap.activeEvent && !snap.activeEvent.resolved && (
-            <EventDialog
-              event={snap.activeEvent}
-              onResolve={(i) => game?.resolveEvent(i)}
-            />
-          )}
-
-          {showPopulation && (
-            <PopulationPanel
-              population={snap.population}
-              onAssign={(job, delta) => game?.assignWorkers(job, delta)}
-              onClose={() => setShowPopulation(false)}
-            />
-          )}
-
-          {showTech && (
-            <TechTreePanel
-              researched={snap.tech.researched}
-              currentResearch={snap.tech.currentResearch}
-              researchProgress={snap.tech.researchProgress}
-              researchTotal={snap.tech.researchTotal}
-              resources={snap.resources}
-              onResearch={(id) => game?.researchTech(id)}
-              onClose={() => setShowTech(false)}
-            />
-          )}
-
-          {showTrade && snap.tradeAvailable && (
-            <TradePanel
-              offers={snap.tradeOffers}
-              resources={snap.resources}
-              onTrade={(i) => game?.executeTrade(i)}
-              onClose={() => setShowTrade(false)}
-            />
-          )}
-
-          {showSave && (
-            <SaveLoadPanel
-              onSave={handleSave}
-              onLoad={handleLoad}
-              onCloudSave={handleCloudSave}
-              onCloudLoad={handleCloudLoad}
-              onClose={() => setShowSave(false)}
-            />
-          )}
-
-          {showLeaderboard && (
-            <LeaderboardPanel
-              snap={snap}
-              onClose={() => setShowLeaderboard(false)}
-            />
-          )}
-
-          {showStats && (
-            <StatsPanel snap={snap} onClose={() => setShowStats(false)} />
-          )}
-
-          {showTutorial && (
-            <TutorialOverlay onClose={() => {
-              setShowTutorial(false);
-              try { localStorage.setItem('micro_empire_tutorial_done', '1'); } catch {}
-            }} />
-          )}
-
-          {snap.paused && !snap.activeEvent && !showPopulation && !showTech && !showTrade && !showSave && !showLeaderboard && (
+        {snap && (
+          <>
+            {/* Top UI: Resource Bar + HUD */}
             <div style={{
               position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              fontSize: 28,
-              fontWeight: 900,
-              color: 'rgba(255,255,255,0.3)',
-              letterSpacing: 4,
-              pointerEvents: 'none',
-              zIndex: 5,
+              top: 0,
+              left: 0,
+              right: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 0,
+              zIndex: 10,
+              pointerEvents: 'auto',
             }}>
-              ⏸ 已暂停
+              <ResourceBar resources={snap.resources} />
+              <HUD
+                dayInSeason={snap.time.dayInSeason}
+                season={snap.time.season}
+                year={snap.time.year}
+                seasonProgress={snap.time.seasonProgress}
+                paused={snap.paused}
+                speed={snap.speed}
+                population={snap.population}
+                defense={totalDefense}
+                achievementCount={snap.achievements.unlocked.length}
+                achievementTotal={snap.achievements.total}
+                onTogglePause={() => game?.togglePause()}
+                onSetSpeed={(s) => game?.setSpeed(s)}
+                onOpenPopulation={() => setShowPopulation(true)}
+                onOpenTech={() => setShowTech(true)}
+                onOpenSave={() => setShowSave(true)}
+                onOpenTrade={() => setShowTrade(true)}
+                onOpenStats={() => setShowStats(true)}
+                onOpenLeaderboard={() => setShowLeaderboard(true)}
+                tradeAvailable={snap.tradeAvailable}
+                nextInvasion={snap.military.nextInvasion}
+              />
             </div>
-          )}
-        </>
-      )}
 
-      <style>{`
-        @keyframes popIn {
-          from { transform: scale(0.8); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes slideDown {
-          from { transform: translate(-50%, -20px); opacity: 0; }
-          to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-          to { opacity: 0; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
+            {/* Build Menu */}
+            <BuildMenu
+              placing={snap.placingBuilding}
+              onSelect={(type) => game?.setPlacingBuilding(type)}
+              resources={snap.resources}
+              researchedTechs={snap.tech.researched}
+            />
+
+            {/* Tile Info Panel */}
+            <InfoPanel
+              selectedTile={snap.selectedTile}
+              tileType={selectedTileType}
+              building={selectedBuilding ?? null}
+              onUpgrade={(x, y) => game?.upgradeBuilding(x, y)}
+              onRemove={(x, y) => game?.removeBuilding(x, y)}
+              onClose={() => { if (game) { game.selectedTile = null; game['emitSnapshot'](); } }}
+            />
+
+            {/* Mini Map */}
+            <MiniMap
+              mapData={snap.map}
+              camera={game?.camera ?? { x: 0, y: 0, zoom: 1, viewW: 800, viewH: 600 } as any}
+              buildings={snap.buildings.map(b => ({ x: b.x, y: b.y }))}
+              onJump={(wx, wy) => game?.camera.moveTo(wx, wy)}
+            />
+
+            {/* Achievement Toast */}
+            <AchievementToast unlockedIds={snap.achievements.unlocked} />
+
+            {/* Event Dialog */}
+            {snap.activeEvent && !snap.activeEvent.resolved && (
+              <EventDialog
+                event={snap.activeEvent}
+                onResolve={(i) => game?.resolveEvent(i)}
+              />
+            )}
+
+            {/* Panels */}
+            {showPopulation && (
+              <PopulationPanel
+                population={snap.population}
+                onAssign={(job, delta) => game?.assignWorkers(job, delta)}
+                onClose={() => setShowPopulation(false)}
+              />
+            )}
+
+            {showTech && (
+              <TechTreePanel
+                researched={snap.tech.researched}
+                currentResearch={snap.tech.currentResearch}
+                researchProgress={snap.tech.researchProgress}
+                researchTotal={snap.tech.researchTotal}
+                resources={snap.resources}
+                onResearch={(id) => game?.researchTech(id)}
+                onClose={() => setShowTech(false)}
+              />
+            )}
+
+            {showTrade && snap.tradeAvailable && (
+              <TradePanel
+                offers={snap.tradeOffers}
+                resources={snap.resources}
+                onTrade={(i) => game?.executeTrade(i)}
+                onClose={() => setShowTrade(false)}
+              />
+            )}
+
+            {showSave && (
+              <SaveLoadPanel
+                onSave={handleSave}
+                onLoad={handleLoad}
+                onCloudSave={handleCloudSave}
+                onCloudLoad={handleCloudLoad}
+                onClose={() => setShowSave(false)}
+              />
+            )}
+
+            {showLeaderboard && (
+              <LeaderboardPanel
+                snap={snap}
+                onClose={() => setShowLeaderboard(false)}
+              />
+            )}
+
+            {showStats && (
+              <StatsPanel snap={snap} onClose={() => setShowStats(false)} />
+            )}
+
+            {showTutorial && (
+              <TutorialOverlay onClose={() => {
+                setShowTutorial(false);
+                try { localStorage.setItem('micro_empire_tutorial_done', '1'); } catch {}
+              }} />
+            )}
+
+            {/* Pause overlay */}
+            {snap.paused && !snap.activeEvent && !showPopulation && !showTech && !showTrade && !showSave && !showLeaderboard && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: 28,
+                fontWeight: 900,
+                color: 'rgba(255,255,255,0.3)',
+                letterSpacing: 4,
+                pointerEvents: 'none',
+                zIndex: 5,
+              }}>
+                ⏸ 已暂停
+              </div>
+            )}
+
+            {/* Placing hint bar */}
+            {snap.placingBuilding && (
+              <div style={{
+                position: 'absolute',
+                bottom: 56,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(0,0,0,0.85)',
+                color: '#ffe93e',
+                padding: '8px 20px',
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 700,
+                zIndex: 20,
+                pointerEvents: 'none',
+                border: '1px solid rgba(255,233,62,0.3)',
+                whiteSpace: 'nowrap',
+              }}>
+                🔨 点击绿色地块放置建筑 · 右键或 ESC 取消
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Toast notifications */}
+        <GameToast toasts={toasts} />
+
+        <style>{`
+          @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+          @keyframes slideDown {
+            from { transform: translate(-50%, -20px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+          }
+          @keyframes fadeOut {
+            to { opacity: 0; }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+      </div>
     </div>
   );
 }

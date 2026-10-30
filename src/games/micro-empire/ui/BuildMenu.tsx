@@ -12,6 +12,7 @@ interface Props {
 export default function BuildMenu({ placing, onSelect, resources, researchedTechs }: Props) {
   const [cat, setCat] = useState<BuildingCategory>('production');
   const [expanded, setExpanded] = useState(true);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const buildings = Object.values(BUILDING_DEFS).filter(b => b.category === cat);
 
@@ -30,14 +31,16 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
     return !!def?.requiredTech && !researchedTechs.includes(def.requiredTech);
   };
 
+  const hoveredDef = hoveredId ? BUILDING_DEFS[hoveredId] : null;
+
   return (
     <div style={{
       position: 'absolute',
       left: 8,
       bottom: 8,
-      width: 280,
-      maxHeight: expanded ? 380 : 40,
-      background: 'rgba(10,10,30,0.9)',
+      width: 290,
+      maxHeight: expanded ? 440 : 40,
+      background: 'rgba(10,10,30,0.92)',
       borderRadius: 12,
       border: '1px solid rgba(255,255,255,0.1)',
       overflow: 'hidden',
@@ -95,6 +98,8 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
                     if (locked) return;
                     onSelect(selected ? null : b.id);
                   }}
+                  onMouseEnter={() => setHoveredId(b.id)}
+                  onMouseLeave={() => setHoveredId(null)}
                   style={{
                     padding: '8px 10px',
                     marginBottom: 4,
@@ -113,7 +118,7 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
                       <div style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>{b.description}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                     {Object.entries(b.cost).map(([r, amt]) => {
                       const enough = (resources[r]?.amount ?? 0) >= (amt ?? 0);
                       return (
@@ -126,14 +131,57 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
                         </span>
                       );
                     })}
+                    <span style={{ fontSize: 10, color: '#888' }}>
+                      ⏱{b.constructionTime}天
+                    </span>
                     {locked && (
                       <span style={{ fontSize: 10, color: '#ff9800' }}>🔒 需要科技</span>
+                    )}
+                    {!locked && !affordable && (
+                      <span style={{ fontSize: 10, color: '#f44336' }}>💰 资源不足</span>
                     )}
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {/* Building detail tooltip on hover */}
+          {hoveredDef && (
+            <div style={{
+              padding: '6px 10px',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              fontSize: 10,
+              color: '#ccc',
+              lineHeight: 1.6,
+            }}>
+              {Object.keys(hoveredDef.production).length > 0 && (
+                <div>📈 产出: {Object.entries(hoveredDef.production).map(([r, amt]) =>
+                  `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
+                ).join(' ')}</div>
+              )}
+              {Object.keys(hoveredDef.upkeep).length > 0 && (
+                <div>📉 消耗: {Object.entries(hoveredDef.upkeep).map(([r, amt]) =>
+                  `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
+                ).join(' ')}</div>
+              )}
+              {hoveredDef.populationCapacity > 0 && (
+                <div>👥 住房容量: +{hoveredDef.populationCapacity}</div>
+              )}
+              {hoveredDef.happinessBonus > 0 && (
+                <div>😊 幸福度: +{hoveredDef.happinessBonus}</div>
+              )}
+              {hoveredDef.defenseBonus > 0 && (
+                <div>🛡️ 防御: +{hoveredDef.defenseBonus}</div>
+              )}
+              {hoveredDef.knowledgeBonus > 0 && (
+                <div>📚 知识: +{hoveredDef.knowledgeBonus}/天</div>
+              )}
+              <div style={{ color: '#888' }}>
+                🗺️ 可建造: {hoveredDef.allowedTerrain.join(', ')} | 最高 {hoveredDef.maxLevel} 级
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -144,8 +192,9 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
           fontSize: 11,
           color: '#ffe93e',
           textAlign: 'center',
+          background: 'rgba(255,233,62,0.05)',
         }}>
-          点击地图放置 · 右键取消
+          🔨 点击绿色地块放置 · 红色表示不可放置 · 右键取消
         </div>
       )}
     </div>

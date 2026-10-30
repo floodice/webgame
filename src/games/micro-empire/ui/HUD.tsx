@@ -39,7 +39,7 @@ export default function HUD({
       alignItems: 'center',
       padding: '6px 12px',
       background: 'rgba(0,0,0,0.75)',
-      borderRadius: 10,
+      borderRadius: 0,
       backdropFilter: 'blur(8px)',
       gap: 10,
       flexWrap: 'wrap',

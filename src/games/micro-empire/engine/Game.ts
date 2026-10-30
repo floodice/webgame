@@ -13,6 +13,7 @@ import { EventSystem } from '../systems/EventSystem';
 import { TradeSystem } from '../systems/TradeSystem';
 import { MilitarySystem } from '../systems/MilitarySystem';
 import { AchievementSystem } from '../systems/AchievementSystem';
+import { BUILDING_DEFS } from '../data/buildings';
 import { TILE_SIZE, MAP_W, MAP_H, WORLD_PX_W, WORLD_PX_H, TICK_MS } from '../utils/constants';
 import type { TileType } from '../world/Tile';
 
@@ -87,10 +88,13 @@ export class Game {
       if (tx < 0 || tx >= MAP_W || ty < 0 || ty >= MAP_H) return;
 
       if (this.placingBuilding) {
-        const ok = this.buildings.place(this.placingBuilding, tx, ty, this.resources, this.tech);
-        if (ok) {
+        const check = this.buildings.canPlace(this.placingBuilding, tx, ty, this.resources, this.tech);
+        if (check.ok) {
+          this.buildings.place(this.placingBuilding, tx, ty, this.resources, this.tech);
           this.renderer.markBuildingDirty();
           this.emitSnapshot();
+        } else {
+          this.bus.emit('building:placeFail', check.reason);
         }
         return;
       }
@@ -196,6 +200,12 @@ export class Game {
       if (ticked) this.emitSnapshot();
     }
 
+    let hoverCanPlace = false;
+    if (this.placingBuilding && this.hoverTile) {
+      const chk = this.buildings.canPlace(this.placingBuilding, this.hoverTile.x, this.hoverTile.y, this.resources, this.tech);
+      hoverCanPlace = chk.ok;
+    }
+
     this.renderer.render(
       this.camera,
       this.map,
@@ -205,6 +215,7 @@ export class Game {
       this.selectedTile,
       this.placingBuilding,
       this.time.snapshot().season,
+      hoverCanPlace,
     );
 
     this.rafId = requestAnimationFrame(this.loop);
@@ -242,7 +253,20 @@ export class Game {
   }
 
   upgradeBuilding(bx: number, by: number) {
-    this.buildings.upgrade(bx, by, this.resources);
+    const ok = this.buildings.upgrade(bx, by, this.resources);
+    if (!ok) {
+      const b = this.buildings.getAt(bx, by);
+      if (b) {
+        const def = BUILDING_DEFS[b.type];
+        if (def && b.level >= def.maxLevel) {
+          this.bus.emit('building:placeFail', '已达最高等级');
+        } else if (b.constructionLeft > 0) {
+          this.bus.emit('building:placeFail', '建筑尚在建造中');
+        } else {
+          this.bus.emit('building:placeFail', '升级资源不足');
+        }
+      }
+    }
     this.renderer.markBuildingDirty();
     this.emitSnapshot();
   }

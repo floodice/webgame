@@ -165,7 +165,7 @@ export class Renderer {
     ctx.textBaseline = 'alphabetic';
   }
 
-  render(camera: Camera, map: GameMap, buildings: PlacedBuilding[], now: number, hoverTile: { x: number; y: number } | null, selectedTile: { x: number; y: number } | null, placingBuilding: string | null, season: number) {
+  render(camera: Camera, map: GameMap, buildings: PlacedBuilding[], now: number, hoverTile: { x: number; y: number } | null, selectedTile: { x: number; y: number } | null, placingBuilding: string | null, season: number, hoverCanPlace = false) {
     const { width, height } = this.canvas;
     const ctx = this.ctx;
 
@@ -192,9 +192,9 @@ export class Renderer {
       if (placingBuilding) {
         const def = BUILDING_DEFS[placingBuilding];
         if (def) {
-          ctx.globalAlpha = 0.5;
-          ctx.fillStyle = def.color;
-          ctx.fillRect(hx + 2, hy + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+          ctx.globalAlpha = 0.45;
+          ctx.fillStyle = hoverCanPlace ? 'rgba(76,175,80,0.6)' : 'rgba(244,67,54,0.5)';
+          ctx.fillRect(hx + 1, hy + 1, TILE_SIZE - 2, TILE_SIZE - 2);
           ctx.globalAlpha = 1;
           ctx.font = '18px serif';
           ctx.textAlign = 'center';
@@ -203,8 +203,10 @@ export class Renderer {
           ctx.textBaseline = 'alphabetic';
         }
       }
-      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = placingBuilding
+        ? (hoverCanPlace ? 'rgba(76,175,80,0.9)' : 'rgba(244,67,54,0.8)')
+        : 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = placingBuilding ? 2 : 1.5;
       ctx.strokeRect(hx + 0.5, hy + 0.5, TILE_SIZE - 1, TILE_SIZE - 1);
     }
 
