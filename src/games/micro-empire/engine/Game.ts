@@ -289,7 +289,6 @@ export class Game {
     if (this.renderer) {
       this.renderer.showGrid = s.showGrid;
     }
-    this.resources.setTickMs(s.tickSpeed);
   }
 
   resolveEvent(choiceIndex: number) {

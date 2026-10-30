@@ -55,7 +55,7 @@ export default function ResourceBar({ resources }: Props) {
                   color: data.rate > 0 ? '#4caf50' : data.rate < 0 ? '#f44336' : '#888',
                   fontWeight: 600,
                 }}>
-                  {rateSign(data.rate)}/s
+                  {rateSign(data.rate)}/天
                 </span>
               </div>
               <div style={{

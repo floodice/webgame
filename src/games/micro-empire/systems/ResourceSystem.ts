@@ -1,7 +1,7 @@
 import { EventBus } from '../engine/EventBus';
 import { RESOURCE_DEFS, ALL_RESOURCES, type ResourceType } from '../data/resources';
 import { BUILDING_DEFS } from '../data/buildings';
-import { SEASON_FOOD_MOD, SEASON_WOOD_MOD, TICK_MS } from '../utils/constants';
+import { SEASON_FOOD_MOD, SEASON_WOOD_MOD } from '../utils/constants';
 import type { PlacedBuilding } from './BuildingSystem';
 import type { TechSystem } from './TechSystem';
 
@@ -9,7 +9,6 @@ export class ResourceSystem {
   private amounts: Record<ResourceType, number> = {} as any;
   private maxAmounts: Record<ResourceType, number> = {} as any;
   private rates: Record<ResourceType, number> = {} as any;
-  private currentTickMs = TICK_MS;
 
   private bus: EventBus;
   constructor(bus: EventBus) {
@@ -99,22 +98,17 @@ export class ResourceSystem {
       this.maxAmounts[r] = RESOURCE_DEFS[r].maxBase + storageBonus;
     }
 
-    const ticksPerSec = 1000 / this.currentTickMs;
+    // Each tick = 1 game day; add per-day rate directly
     for (const r of ALL_RESOURCES) {
-      const tickRate = newRates[r] / ticksPerSec;
-      if (tickRate > 0) {
-        this.amounts[r] = Math.min(this.maxAmounts[r], this.amounts[r] + tickRate);
-      } else if (tickRate < 0) {
-        this.amounts[r] = Math.max(0, this.amounts[r] + tickRate);
+      if (newRates[r] > 0) {
+        this.amounts[r] = Math.min(this.maxAmounts[r], this.amounts[r] + newRates[r]);
+      } else if (newRates[r] < 0) {
+        this.amounts[r] = Math.max(0, this.amounts[r] + newRates[r]);
         if (this.amounts[r] === 0) this.bus.emit('resource:depleted', r);
       }
     }
 
     this.bus.emit('resource:changed');
-  }
-
-  setTickMs(ms: number) {
-    this.currentTickMs = ms;
   }
 
   snapshot() {
