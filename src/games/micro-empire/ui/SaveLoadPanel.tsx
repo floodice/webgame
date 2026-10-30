@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getAllSlots, hasSave, getSaveMeta, deleteSave } from '../utils/save';
 import {
   isCloudLoggedIn, getCloudName, cloudRegister, clearCloudSession,
-  cloudListSaves, cloudSave, cloudLoad, cloudDeleteSave,
+  cloudListSaves, cloudLoad, cloudDeleteSave,
   type CloudSaveMeta,
 } from '../utils/cloudApi';
 

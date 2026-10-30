@@ -158,7 +158,7 @@ function getBestDirection(grid: Grid): Direction | null {
   return best;
 }
 
-const ARROW_MAP: Record<Direction, string> = { up: '↑', down: '↓', left: '←', right: '→' };
+
 const ARROW_OFFSET: Record<Direction, React.CSSProperties> = {
   up:    { top: '12%',  left: '50%', transform: 'translateX(-50%)' },
   down:  { bottom: '12%', left: '50%', transform: 'translateX(-50%)' },

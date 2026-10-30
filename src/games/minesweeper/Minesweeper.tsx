@@ -12,8 +12,6 @@ type CellState = {
   adjacent: number;
 };
 
-type Difficulty = { name: string; rows: number; cols: number; mines: number };
-
 const DIFFICULTY_CONFIGS = [
   { rows: 9, cols: 9, mines: 10 },
   { rows: 16, cols: 16, mines: 40 },

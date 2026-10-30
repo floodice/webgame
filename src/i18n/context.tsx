@@ -44,8 +44,6 @@ function detectLang(): Lang {
   return 'en';
 }
 
-type NestedStr<T> = T extends string ? T : { [K in keyof T]: NestedStr<T[K]> };
-
 interface I18nCtx {
   lang: Lang;
   setLang: (l: Lang) => void;

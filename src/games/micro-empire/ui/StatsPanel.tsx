@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function StatsPanel({ snap, onClose }: Props) {
-  const { resources, population, time, buildings, tech, military, achievements } = snap;
+  const { population, time, buildings, tech, military, achievements } = snap;
 
   const totalBuildings = buildings.length;
   const completedBuildings = buildings.filter(b => b.constructionLeft === 0).length;

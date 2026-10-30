@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { games, type CategoryKey } from '../utils/gameRegistry';
 import { getHighScore } from '../utils/storage';

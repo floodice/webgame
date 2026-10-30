@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { useI18n, type Lang, LANG_LIST } from '../i18n';
+import { useI18n, LANG_LIST } from '../i18n';
 
 const HEADER_EMOJIS = ['🎮', '👾', '🕹️', '🎪', '🤪', '💥', '🎲', '🃏', '🧩', '🎯', '🔥', '⚡', '🌈', '🦄', '🍭', '🧸', '🪩', '🎠', '🍬', '🪅'];
 

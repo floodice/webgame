@@ -8,11 +8,11 @@ const W = 400;
 const H = 500;
 const PADDLE_H = 12;
 
-const DIFFICULTIES = [
+const DIFFICULTIES: { paddleW: number; ballSpeed: number; lives: number }[] = [
   { paddleW: 100, ballSpeed: 2.5, lives: 5 },
   { paddleW: 80, ballSpeed: 3, lives: 3 },
   { paddleW: 60, ballSpeed: 4, lives: 2 },
-] as const;
+];
 // DIFF_LABELS moved inside component for i18n
 const PADDLE_Y = H - 40;
 const BALL_R = 6;

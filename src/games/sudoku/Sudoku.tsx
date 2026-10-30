@@ -69,12 +69,6 @@ function generatePuzzle(difficulty: Difficulty): { puzzle: Grid; solution: Grid 
   return { puzzle, solution };
 }
 
-const DIFF_KEYS: Record<Difficulty, string> = {
-  easy: 'easy',
-  medium: 'medium',
-  hard: 'hard',
-};
-
 export default function Sudoku() {
   const { t } = useI18n();
   const DIFF_LABELS: Record<Difficulty, string> = { easy: t.common.easy, medium: t.common.medium, hard: t.common.hard };
@@ -84,7 +78,7 @@ export default function Sudoku() {
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [completed, setCompleted] = useState(false);
-  const [showHint, setShowHint] = useState(false);
+  const [_showHint, _setShowHint] = useState(false);
   const { showHint: idleHint, resetHint: resetIdle } = useIdleHint(10000, !completed);
   const [idleHighlight, setIdleHighlight] = useState<[number, number] | null>(null);
 

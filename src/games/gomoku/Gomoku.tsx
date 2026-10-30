@@ -32,7 +32,6 @@ function checkWin(board: Board, r: number, c: number, stone: Stone): boolean {
 
 // Simple scoring-based AI with pattern evaluation
 function evaluateLine(board: Board, r: number, c: number, dr: number, dc: number, stone: Stone): number {
-  const opp: Stone = stone === 1 ? 2 : 1;
   let count = 1;
   let openEnds = 0;
 

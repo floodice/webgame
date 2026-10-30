@@ -4,7 +4,7 @@ import { useGameScore } from '../../hooks/useGameScore';
 import LeaderboardPanel from '../../components/LeaderboardPanel';
 import { useIdleHint } from '../../hooks/useIdleHint';
 import { LEVELS, ZONE_INFO } from './levels';
-import { useI18n, fmt } from '../../i18n';
+import { useI18n } from '../../i18n';
 
 /** 0=empty, 1=wall, 2=floor, 3=target, 4=box, 5=player, 6=box-on-target, 7=player-on-target */
 

@@ -112,7 +112,7 @@ export default function BubbleShooter() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { score, highScore, updateScore, resetScore } = useGameScore('bubble-shooter');
   const [gameOver, setGameOver] = useState(false);
-  const [won, setWon] = useState(false);
+  const [_won, setWon] = useState(false);
 
   const stateRef = useRef({
     bubbles: initBoard(),

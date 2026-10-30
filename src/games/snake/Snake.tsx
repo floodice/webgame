@@ -18,7 +18,7 @@ const DIFFICULTIES = [
   { initialSpeed: 150, decelStep: 2, minSpeed: 60 },
   { initialSpeed: 100, decelStep: 3, minSpeed: 40 },
 ] as const;
-const DIFF_KEYS = ['easy', 'medium', 'hard'] as const;
+
 
 const SNAKE_COLORS = ['#39ff14', '#ffe93e', '#00f0ff', '#ff6baf', '#bf5af2', '#ff6b2b'];
 function snakeSegmentColor(index: number, length: number): string {
