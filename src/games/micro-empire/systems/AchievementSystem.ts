@@ -8,12 +8,17 @@ import type { TechSystem } from './TechSystem';
 
 export class AchievementSystem {
   private unlocked = new Set<string>();
+  private victoryCount = 0;
 
   private bus: EventBus;
   constructor(bus: EventBus) {
     this.bus = bus;
     bus.on('building:placed', () => this.check('first_building', true));
-    bus.on('military:victory', () => this.check('first_victory', true));
+    bus.on('military:victory', () => {
+      this.victoryCount++;
+      this.check('first_victory', true);
+      this.check('victory_5', this.victoryCount >= 5);
+    });
     bus.on('trade:executed', () => this.check('first_trade', true));
   }
 
@@ -34,14 +39,21 @@ export class AchievementSystem {
     this.check('pop_10', population.total >= 10);
     this.check('pop_50', population.total >= 50);
     this.check('pop_100', population.total >= 100);
+    this.check('pop_200', population.total >= 200);
     this.check('gold_500', resources.get('gold') >= 500);
+    this.check('gold_2000', resources.get('gold') >= 2000);
     this.check('tech_5', tech.snapshot().researched.length >= 5);
     this.check('tech_all', tech.snapshot().researched.length >= Object.keys(TECH_DEFS).length);
-    this.check('buildings_10', buildings.getAll().length >= 10);
-    this.check('buildings_25', buildings.getAll().length >= 25);
+    const builtCount = buildings.getAll().filter(b => b.constructionLeft === 0).length;
+    this.check('buildings_10', builtCount >= 10);
+    this.check('buildings_25', builtCount >= 25);
+    this.check('buildings_50', builtCount >= 50);
     this.check('survive_year', time.year >= 2);
     this.check('survive_5years', time.year >= 6);
+    this.check('survive_10years', time.year >= 11);
+    this.check('survive_20years', time.year >= 21);
     this.check('happiness_90', population.happiness >= 90);
+    this.check('monument', buildings.getAll().some(b => b.type === 'monument' && b.constructionLeft === 0));
   }
 
   isUnlocked(id: string): boolean { return this.unlocked.has(id); }

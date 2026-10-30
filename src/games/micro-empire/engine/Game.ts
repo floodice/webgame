@@ -35,6 +35,7 @@ export interface GameSnapshot {
   activeEvent: ReturnType<EventSystem['getActiveEvent']>;
   tradeOffers: ReturnType<TradeSystem['getOffers']>;
   tradeAvailable: boolean;
+  victory: boolean;
 }
 
 export type GameUpdateCallback = (snap: GameSnapshot) => void;
@@ -159,6 +160,7 @@ export class Game {
       activeEvent: this.events.getActiveEvent(),
       tradeOffers: this.trade.getOffers(),
       tradeAvailable: this.trade.isAvailable(),
+      victory: this.buildings.getAll().some(b => b.type === 'monument' && b.constructionLeft === 0),
     };
   }
 

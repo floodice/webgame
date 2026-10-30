@@ -16,6 +16,7 @@ import TutorialOverlay from './ui/TutorialOverlay';
 import StatsPanel from './ui/StatsPanel';
 import GameToast from './ui/GameToast';
 import SettingsPanel from './ui/SettingsPanel';
+import VictoryScreen from './ui/VictoryScreen';
 import { autoSave, loadAutoSave, saveGame, loadGame } from './utils/save';
 import { cloudSave, isCloudLoggedIn } from './utils/cloudApi';
 import { loadSettings, saveSettings, type GameSettings } from './utils/settings';
@@ -50,6 +51,8 @@ export default function MicroEmpire() {
     try { return !localStorage.getItem('micro_empire_tutorial_done'); } catch { return true; }
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [showVictory, setShowVictory] = useState(false);
+  const victoryShownRef = useRef(false);
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
 
   // Toast notification system
@@ -80,6 +83,10 @@ export default function MicroEmpire() {
 
   const updateSnap = useCallback((s: GameSnapshot) => {
     setSnap({ ...s });
+    if (s.victory && !victoryShownRef.current) {
+      victoryShownRef.current = true;
+      setShowVictory(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -465,6 +472,24 @@ export default function MicroEmpire() {
                 setShowTutorial(false);
                 try { localStorage.setItem('micro_empire_tutorial_done', '1'); } catch {}
               }} />
+            )}
+
+            {showVictory && (
+              <VictoryScreen
+                snap={snap}
+                onContinue={() => {
+                  setShowVictory(false);
+                  game?.togglePause();
+                }}
+                onNewGame={() => {
+                  setShowVictory(false);
+                  victoryShownRef.current = false;
+                  try {
+                    localStorage.removeItem('micro_empire_autosave');
+                  } catch {}
+                  window.location.reload();
+                }}
+              />
             )}
 
             {/* Pause overlay */}

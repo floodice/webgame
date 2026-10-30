@@ -29,8 +29,9 @@ export class MilitarySystem {
     this.nextInvasion--;
     if (this.nextInvasion > 0) return;
 
-    const yearFactor = Math.floor(time.day / 120) + 1;
-    const strength = 10 + yearFactor * 8 + Math.floor(Math.random() * yearFactor * 5);
+    const yearFactor = Math.floor(time.day / 240) + 1;
+    const scaleFactor = 1 + yearFactor * 0.15;
+    const strength = Math.floor((10 + yearFactor * 10 + Math.floor(Math.random() * yearFactor * 6)) * scaleFactor);
     const defense = buildings.totalDefense() + population.workers.soldier * 3;
 
     const won = defense >= strength;
