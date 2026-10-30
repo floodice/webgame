@@ -19,6 +19,7 @@ interface Props {
   onOpenTrade: () => void;
   onOpenStats: () => void;
   onOpenLeaderboard: () => void;
+  onOpenSettings: () => void;
   tradeAvailable: boolean;
   nextInvasion: number;
 }
@@ -26,7 +27,7 @@ interface Props {
 export default function HUD({
   dayInSeason, season, year, seasonProgress, paused, speed,
   population, defense, achievementCount, achievementTotal,
-  onTogglePause, onSetSpeed, onOpenPopulation, onOpenTech, onOpenSave, onOpenTrade, onOpenStats, onOpenLeaderboard,
+  onTogglePause, onSetSpeed, onOpenPopulation, onOpenTech, onOpenSave, onOpenTrade, onOpenStats, onOpenLeaderboard, onOpenSettings,
   tradeAvailable, nextInvasion,
 }: Props) {
   const seasonName = SEASON_NAMES[season as Season] ?? '?';
@@ -131,6 +132,11 @@ export default function HUD({
           style={toolBtnStyle}
           title="存档"
         >💾</button>
+        <button
+          onClick={onOpenSettings}
+          style={{ ...toolBtnStyle, background: 'rgba(158,158,158,0.1)', borderColor: 'rgba(158,158,158,0.2)' }}
+          title="设置"
+        >⚙️</button>
         <span style={{ fontSize: 10, color: '#888', alignSelf: 'center', marginLeft: 4 }}>
           🏆 {achievementCount}/{achievementTotal}
         </span>

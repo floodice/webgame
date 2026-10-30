@@ -15,8 +15,10 @@ import LeaderboardPanel from './ui/LeaderboardPanel';
 import TutorialOverlay from './ui/TutorialOverlay';
 import StatsPanel from './ui/StatsPanel';
 import GameToast from './ui/GameToast';
+import SettingsPanel from './ui/SettingsPanel';
 import { autoSave, loadAutoSave, saveGame, loadGame } from './utils/save';
 import { cloudSave, isCloudLoggedIn } from './utils/cloudApi';
+import { loadSettings, saveSettings, type GameSettings } from './utils/settings';
 import { BUILDING_DEFS } from './data/buildings';
 import { RESOURCE_DEFS } from './data/resources';
 import { TECH_DEFS } from './data/technologies';
@@ -47,6 +49,8 @@ export default function MicroEmpire() {
   const [showTutorial, setShowTutorial] = useState(() => {
     try { return !localStorage.getItem('micro_empire_tutorial_done'); } catch { return true; }
   });
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
 
   // Toast notification system
   const [toasts, setToasts] = useState<{ id: number; text: string; type: 'info' | 'warn' | 'error' | 'success' }[]>([]);
@@ -58,7 +62,7 @@ export default function MicroEmpire() {
   }, []);
 
   const pausedByPanel = useRef(false);
-  const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard;
+  const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard || showSettings;
 
   useEffect(() => {
     const game = gameRef.current;
@@ -103,15 +107,14 @@ export default function MicroEmpire() {
       try { game.deserialize(saved); } catch {}
     }
 
+    const initialSettings = loadSettings();
+    game.applySettings(initialSettings);
+
     resize();
     game.start();
 
     const ro = new ResizeObserver(resize);
     ro.observe(container);
-
-    autoSaveTimer.current = window.setInterval(() => {
-      autoSave(game.serialize());
-    }, 120000);
 
     return () => {
       game.dispose();
@@ -119,6 +122,18 @@ export default function MicroEmpire() {
       clearInterval(autoSaveTimer.current);
     };
   }, [updateSnap]);
+
+  // Auto-save timer reacts to settings changes
+  useEffect(() => {
+    clearInterval(autoSaveTimer.current);
+    const intervalSec = settings.autoSaveInterval;
+    if (intervalSec > 0 && gameRef.current) {
+      autoSaveTimer.current = window.setInterval(() => {
+        if (gameRef.current) autoSave(gameRef.current.serialize());
+      }, intervalSec * 1000);
+    }
+    return () => clearInterval(autoSaveTimer.current);
+  }, [settings.autoSaveInterval]);
 
   useEffect(() => {
     const game = gameRef.current;
@@ -135,6 +150,7 @@ export default function MicroEmpire() {
         setShowTrade(false);
         setShowSave(false);
         setShowLeaderboard(false);
+        setShowSettings(false);
       }
       if (e.key === 'b' || e.key === 'B') {
         setShowPopulation(false); setShowTech(false); setShowTrade(false); setShowSave(false);
@@ -226,6 +242,33 @@ export default function MicroEmpire() {
     }
   };
 
+  const handleSettingsChange = useCallback((newSettings: GameSettings) => {
+    setSettings(newSettings);
+    saveSettings(newSettings);
+    gameRef.current?.applySettings(newSettings);
+  }, []);
+
+  const handleResetTutorial = useCallback(() => {
+    try { localStorage.removeItem('micro_empire_tutorial_done'); } catch {}
+    setShowSettings(false);
+    setShowTutorial(true);
+    addToast('📖 教程已重置', 'info');
+  }, [addToast]);
+
+  const handleClearSave = useCallback(() => {
+    try {
+      localStorage.removeItem('micro_empire_autosave');
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('micro_empire_save_')) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {}
+    setShowSettings(false);
+    addToast('🗑️ 所有本地存档已清除', 'warn');
+  }, [addToast]);
+
   const selectedBuilding = snap?.selectedTile
     ? snap.buildings.find(b => b.x === snap.selectedTile!.x && b.y === snap.selectedTile!.y)
     : null;
@@ -311,6 +354,7 @@ export default function MicroEmpire() {
                 onOpenTrade={() => setShowTrade(true)}
                 onOpenStats={() => setShowStats(true)}
                 onOpenLeaderboard={() => setShowLeaderboard(true)}
+                onOpenSettings={() => setShowSettings(true)}
                 tradeAvailable={snap.tradeAvailable}
                 nextInvasion={snap.military.nextInvasion}
               />
@@ -335,12 +379,14 @@ export default function MicroEmpire() {
             />
 
             {/* Mini Map */}
-            <MiniMap
-              mapData={snap.map}
-              camera={game?.camera ?? { x: 0, y: 0, zoom: 1, viewW: 800, viewH: 600 } as any}
-              buildings={snap.buildings.map(b => ({ x: b.x, y: b.y }))}
-              onJump={(wx, wy) => game?.camera.moveTo(wx, wy)}
-            />
+            {settings.showMinimap && (
+              <MiniMap
+                mapData={snap.map}
+                camera={game?.camera ?? { x: 0, y: 0, zoom: 1, viewW: 800, viewH: 600 } as any}
+                buildings={snap.buildings.map(b => ({ x: b.x, y: b.y }))}
+                onJump={(wx, wy) => game?.camera.moveTo(wx, wy)}
+              />
+            )}
 
             {/* Achievement Toast */}
             <AchievementToast unlockedIds={snap.achievements.unlocked} />
@@ -404,6 +450,16 @@ export default function MicroEmpire() {
               <StatsPanel snap={snap} onClose={() => setShowStats(false)} />
             )}
 
+            {showSettings && (
+              <SettingsPanel
+                settings={settings}
+                onChange={handleSettingsChange}
+                onResetTutorial={handleResetTutorial}
+                onClearSave={handleClearSave}
+                onClose={() => setShowSettings(false)}
+              />
+            )}
+
             {showTutorial && (
               <TutorialOverlay onClose={() => {
                 setShowTutorial(false);
@@ -412,7 +468,7 @@ export default function MicroEmpire() {
             )}
 
             {/* Pause overlay */}
-            {snap.paused && !snap.activeEvent && !showPopulation && !showTech && !showTrade && !showSave && !showLeaderboard && (
+            {snap.paused && !snap.activeEvent && !showPopulation && !showTech && !showTrade && !showSave && !showLeaderboard && !showSettings && (
               <div style={{
                 position: 'absolute',
                 top: '50%',
@@ -454,7 +510,7 @@ export default function MicroEmpire() {
         )}
 
         {/* Toast notifications */}
-        <GameToast toasts={toasts} />
+        {settings.showToasts && <GameToast toasts={toasts} />}
 
         <style>{`
           @keyframes popIn {

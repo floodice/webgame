@@ -14,7 +14,8 @@ import { TradeSystem } from '../systems/TradeSystem';
 import { MilitarySystem } from '../systems/MilitarySystem';
 import { AchievementSystem } from '../systems/AchievementSystem';
 import { BUILDING_DEFS } from '../data/buildings';
-import { TILE_SIZE, MAP_W, MAP_H, WORLD_PX_W, WORLD_PX_H, TICK_MS } from '../utils/constants';
+import { TILE_SIZE, MAP_W, MAP_H, WORLD_PX_W, WORLD_PX_H } from '../utils/constants';
+import { loadSettings, type GameSettings } from '../utils/settings';
 import type { TileType } from '../world/Tile';
 
 export interface GameSnapshot {
@@ -58,6 +59,7 @@ export class Game {
   private lastTime = 0;
   private accumulator = 0;
   private running = false;
+  tickMs: number;
 
   selectedTile: { x: number; y: number } | null = null;
   hoverTile: { x: number; y: number } | null = null;
@@ -68,6 +70,8 @@ export class Game {
   private onUpdate: GameUpdateCallback = () => {};
 
   constructor() {
+    const settings = loadSettings();
+    this.tickMs = settings.tickSpeed;
     this.camera = new Camera(800, 600, WORLD_PX_W, WORLD_PX_H);
     this.map = MapGenerator.generate(MAP_W, MAP_H);
     this.resources = new ResourceSystem(this.bus);
@@ -193,8 +197,8 @@ export class Game {
     if (!this.paused) {
       this.accumulator += dt * this.speed;
       let ticked = false;
-      while (this.accumulator >= TICK_MS) {
-        this.accumulator -= TICK_MS;
+      while (this.accumulator >= this.tickMs) {
+        this.accumulator -= this.tickMs;
         this.tick();
         ticked = true;
       }
@@ -276,6 +280,14 @@ export class Game {
     this.buildings.remove(bx, by);
     this.renderer.markBuildingDirty();
     this.emitSnapshot();
+  }
+
+  applySettings(s: GameSettings) {
+    this.tickMs = s.tickSpeed;
+    if (this.renderer) {
+      this.renderer.showGrid = s.showGrid;
+    }
+    this.resources.setTickMs(s.tickSpeed);
   }
 
   resolveEvent(choiceIndex: number) {

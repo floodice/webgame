@@ -165,6 +165,8 @@ export class Renderer {
     ctx.textBaseline = 'alphabetic';
   }
 
+  showGrid = true;
+
   render(camera: Camera, map: GameMap, buildings: PlacedBuilding[], now: number, hoverTile: { x: number; y: number } | null, selectedTile: { x: number; y: number } | null, placingBuilding: string | null, season: number, hoverCanPlace = false) {
     const { width, height } = this.canvas;
     const ctx = this.ctx;
@@ -182,7 +184,7 @@ export class Renderer {
 
     ctx.drawImage(this.terrainCanvas, 0, 0);
 
-    this.drawGrid(ctx, camera);
+    if (this.showGrid) this.drawGrid(ctx, camera);
 
     ctx.drawImage(this.buildingCanvas, 0, 0);
 

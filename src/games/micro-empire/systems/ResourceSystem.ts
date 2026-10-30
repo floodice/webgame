@@ -9,6 +9,7 @@ export class ResourceSystem {
   private amounts: Record<ResourceType, number> = {} as any;
   private maxAmounts: Record<ResourceType, number> = {} as any;
   private rates: Record<ResourceType, number> = {} as any;
+  private currentTickMs = TICK_MS;
 
   private bus: EventBus;
   constructor(bus: EventBus) {
@@ -90,7 +91,7 @@ export class ResourceSystem {
       this.maxAmounts[r] = RESOURCE_DEFS[r].maxBase + storageBonus;
     }
 
-    const ticksPerSec = 1000 / TICK_MS;
+    const ticksPerSec = 1000 / this.currentTickMs;
     for (const r of ALL_RESOURCES) {
       const tickRate = newRates[r] / ticksPerSec;
       if (tickRate > 0) {
@@ -102,6 +103,10 @@ export class ResourceSystem {
     }
 
     this.bus.emit('resource:changed');
+  }
+
+  setTickMs(ms: number) {
+    this.currentTickMs = ms;
   }
 
   snapshot() {
