@@ -39,7 +39,7 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
       left: 8,
       bottom: 8,
       width: 290,
-      maxHeight: expanded ? 440 : 40,
+      maxHeight: expanded ? 520 : 40,
       background: 'rgba(10,10,30,0.92)',
       borderRadius: 12,
       border: '1px solid rgba(255,255,255,0.1)',
@@ -146,42 +146,49 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
             })}
           </div>
 
-          {/* Building detail tooltip on hover */}
-          {hoveredDef && (
-            <div style={{
-              padding: '6px 10px',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-              fontSize: 10,
-              color: '#ccc',
-              lineHeight: 1.6,
-            }}>
-              {Object.keys(hoveredDef.production).length > 0 && (
-                <div>📈 产出: {Object.entries(hoveredDef.production).map(([r, amt]) =>
-                  `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
-                ).join(' ')}</div>
-              )}
-              {Object.keys(hoveredDef.upkeep).length > 0 && (
-                <div>📉 消耗: {Object.entries(hoveredDef.upkeep).map(([r, amt]) =>
-                  `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
-                ).join(' ')}</div>
-              )}
-              {hoveredDef.populationCapacity > 0 && (
-                <div>👥 住房容量: +{hoveredDef.populationCapacity}</div>
-              )}
-              {hoveredDef.happinessBonus > 0 && (
-                <div>😊 幸福度: +{hoveredDef.happinessBonus}</div>
-              )}
-              {hoveredDef.defenseBonus > 0 && (
-                <div>🛡️ 防御: +{hoveredDef.defenseBonus}</div>
-              )}
-              {hoveredDef.knowledgeBonus > 0 && (
-                <div>📚 知识: +{hoveredDef.knowledgeBonus}/天</div>
-              )}
-              <div style={{ color: '#888' }}>
-                🗺️ 可建造: {hoveredDef.allowedTerrain.join(', ')} | 最高 {hoveredDef.maxLevel} 级
+          {/* Building detail tooltip — fixed-height to prevent layout shift */}
+          <div style={{
+            minHeight: 120,
+            padding: '6px 10px',
+            borderTop: '1px solid rgba(255,255,255,0.1)',
+            fontSize: 10,
+            color: '#ccc',
+            lineHeight: 1.6,
+          }}>
+            {hoveredDef ? (
+              <>
+                {Object.keys(hoveredDef.production).length > 0 && (
+                  <div>📈 产出: {Object.entries(hoveredDef.production).map(([r, amt]) =>
+                    `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
+                  ).join(' ')}</div>
+                )}
+                {Object.keys(hoveredDef.upkeep).length > 0 && (
+                  <div>📉 消耗: {Object.entries(hoveredDef.upkeep).map(([r, amt]) =>
+                    `${RESOURCE_DEFS[r as ResourceType]?.icon ?? ''}${amt}/天`
+                  ).join(' ')}</div>
+                )}
+                {hoveredDef.populationCapacity > 0 && (
+                  <div>👥 住房容量: +{hoveredDef.populationCapacity}</div>
+                )}
+                {hoveredDef.happinessBonus > 0 && (
+                  <div>😊 幸福度: +{hoveredDef.happinessBonus}</div>
+                )}
+                {hoveredDef.defenseBonus > 0 && (
+                  <div>🛡️ 防御: +{hoveredDef.defenseBonus}</div>
+                )}
+                {hoveredDef.knowledgeBonus > 0 && (
+                  <div>📚 知识: +{hoveredDef.knowledgeBonus}/天</div>
+                )}
+                <div style={{ color: '#888' }}>
+                  🗺️ 可建造: {hoveredDef.allowedTerrain.join(', ')} | 最高 {hoveredDef.maxLevel} 级
+                </div>
+              </>
+            ) : (
+              <div style={{ color: '#666', fontStyle: 'italic', paddingTop: 4 }}>
+                鼠标悬停查看建筑详情
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
 
