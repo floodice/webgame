@@ -161,7 +161,13 @@ export default function MicroEmpire() {
     on('building:completed', (type: string) => addToast(`🏗️ ${bName(type)} 建造完成！`, 'success'));
     on('building:upgraded', (type: string, _x: number, _y: number, level: number) => addToast(`⬆️ ${bName(type)} 升级到 ${level} 级`, 'success'));
     on('building:removed', (type: string) => addToast(`🗑️ ${bName(type)} 已拆除`, 'info'));
-    on('resource:depleted', (r: string) => addToast(`⚠️ ${rName(r)} 已耗尽！注意补充`, 'warn'));
+    const depletedCooldown: Record<string, number> = {};
+    on('resource:depleted', (r: string) => {
+      const now = Date.now();
+      if (depletedCooldown[r] && now - depletedCooldown[r] < 15000) return;
+      depletedCooldown[r] = now;
+      addToast(`⚠️ ${rName(r)} 已耗尽！注意补充`, 'warn');
+    });
     on('season:changed', (season: number) => {
       const names = ['🌸 春天', '☀️ 夏天', '🍂 秋天', '❄️ 冬天'];
       addToast(`${names[season] ?? '新季节'}来了`, 'info');
@@ -170,8 +176,13 @@ export default function MicroEmpire() {
     on('trade:merchant_arrived', () => addToast(`🏪 商人到来，可以进行贸易！`, 'info'));
     on('military:victory', () => addToast(`⚔️ 入侵已击退！`, 'success'));
     on('military:defeat', () => addToast(`💀 防御失败，遭受了损失！`, 'error'));
+    let lastPopWarning = 0;
     on('population:changed', (total: number) => {
-      if (total <= 0) addToast(`⚠️ 人口为零！需要建造住房`, 'error');
+      const now = Date.now();
+      if (total <= 0 && now - lastPopWarning > 30000) {
+        lastPopWarning = now;
+        addToast(`⚠️ 人口为零！需要建造住房`, 'error');
+      }
     });
 
     return () => { unsubs.forEach(u => u()); };
