@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { MAP_W, MAP_H, TILE_SIZE } from '../utils/constants';
 import { TILE_COLORS, type TileType } from '../world/Tile';
 import type { Camera } from '../engine/Camera';
@@ -17,24 +17,34 @@ const MINI_H = MAP_H * MINI_SCALE;
 export default function MiniMap({ mapData, camera, buildings, onJump }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c) return;
-    const ctx = c.getContext('2d')!;
-    ctx.clearRect(0, 0, MINI_W, MINI_H);
-
+  // Cache terrain as ImageData — only rebuild when map changes (rare)
+  const terrainImage = useMemo(() => {
+    const offscreen = new OffscreenCanvas(MINI_W, MINI_H);
+    const ctx = offscreen.getContext('2d')!;
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
         ctx.fillStyle = TILE_COLORS[mapData[y]?.[x] ?? 'grass'];
         ctx.fillRect(x * MINI_SCALE, y * MINI_SCALE, MINI_SCALE, MINI_SCALE);
       }
     }
+    return offscreen;
+  }, [mapData]);
 
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d')!;
+
+    // Draw cached terrain
+    ctx.drawImage(terrainImage, 0, 0);
+
+    // Draw buildings
     ctx.fillStyle = '#ffe93e';
     for (const b of buildings) {
       ctx.fillRect(b.x * MINI_SCALE, b.y * MINI_SCALE, MINI_SCALE, MINI_SCALE);
     }
 
+    // Draw viewport rect
     const vx = camera.x / TILE_SIZE * MINI_SCALE;
     const vy = camera.y / TILE_SIZE * MINI_SCALE;
     const vw = camera.viewW / camera.zoom / TILE_SIZE * MINI_SCALE;

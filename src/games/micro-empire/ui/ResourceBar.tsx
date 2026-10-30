@@ -74,6 +74,7 @@ export default function ResourceBar({ resources }: Props) {
               </div>
             </div>
             {isLow && <span style={{ fontSize: 10 }} title="资源告急">⚠️</span>}
+            {isFull && data.rate > 0 && <span style={{ fontSize: 10 }} title="仓库已满，产出浪费中！建造仓库增加上限">📦</span>}
           </div>
         );
       })}

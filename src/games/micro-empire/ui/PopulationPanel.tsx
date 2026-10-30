@@ -1,4 +1,4 @@
-import { ALL_JOBS, JOB_LABELS } from '../systems/PopulationSystem';
+import { ALL_JOBS, JOB_LABELS, JOB_EFFECTS } from '../systems/PopulationSystem';
 
 interface Props {
   population: { total: number; maxPop: number; happiness: number; workers: Record<string, number> };
@@ -60,7 +60,10 @@ export default function PopulationPanel({ population, onAssign, onClose }: Props
             borderRadius: 8,
             background: 'rgba(255,255,255,0.03)',
           }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#ddd', width: 50 }}>{JOB_LABELS[job]}</span>
+            <div style={{ width: 80 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#ddd' }}>{JOB_LABELS[job]}</div>
+              <div style={{ fontSize: 9, color: '#888' }}>{JOB_EFFECTS[job]}</div>
+            </div>
             <button
               onClick={() => onAssign(job, -1)}
               disabled={(workers[job] ?? 0) <= 0}

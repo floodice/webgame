@@ -14,6 +14,14 @@ export const JOB_LABELS: Record<JobType, string> = {
   merchant: '商人',
   idle: '闲置',
 };
+export const JOB_EFFECTS: Record<JobType, string> = {
+  farmer: '🌾+0.8/天',
+  worker: '🪵+0.3 🪨+0.2/天',
+  scholar: '📚+0.4/天',
+  soldier: '🛡️+3防御 🌾-0.3/天',
+  merchant: '💰+0.5/天',
+  idle: '无产出',
+};
 
 export class PopulationSystem {
   total = 5;

@@ -176,9 +176,6 @@ export default function BuildMenu({ placing, onSelect, resources, researchedTech
                 {hoveredDef.defenseBonus > 0 && (
                   <div>🛡️ 防御: +{hoveredDef.defenseBonus}</div>
                 )}
-                {hoveredDef.knowledgeBonus > 0 && (
-                  <div>📚 知识: +{hoveredDef.knowledgeBonus}/天</div>
-                )}
                 <div style={{ color: '#888' }}>
                   🗺️ 可建造: {hoveredDef.allowedTerrain.join(', ')} | 最高 {hoveredDef.maxLevel} 级
                 </div>
