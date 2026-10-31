@@ -1,5 +1,6 @@
 import { TECH_DEFS, TECH_BRANCHES, type TechBranch } from '../data/technologies';
 import { RESOURCE_DEFS, type ResourceType } from '../data/resources';
+import { SEASON_NAMES, type Season } from '../utils/constants';
 import { useState } from 'react';
 
 interface Props {
@@ -10,9 +11,10 @@ interface Props {
   resources: Record<string, { amount: number }>;
   onResearch: (techId: string) => void;
   onClose: () => void;
+  time?: { year: number; season: number; dayInSeason: number };
 }
 
-export default function TechTreePanel({ researched, currentResearch, researchProgress, researchTotal, resources, onResearch, onClose }: Props) {
+export default function TechTreePanel({ researched, currentResearch, researchProgress, researchTotal, resources, onResearch, onClose, time }: Props) {
   const [branch, setBranch] = useState<TechBranch>('economy');
 
   const branchTechs = Object.values(TECH_DEFS)
@@ -54,7 +56,14 @@ export default function TechTreePanel({ researched, currentResearch, researchPro
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>🔬 科技树</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 16 }}>✕</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {time && (
+              <span style={{ fontSize: 11, color: '#9e9e9e', fontWeight: 600 }}>
+                第{time.year}年 {SEASON_NAMES[time.season as Season]} 第{time.dayInSeason}天
+              </span>
+            )}
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 16 }}>✕</button>
+          </div>
         </div>
 
         {currentResearch && (() => {

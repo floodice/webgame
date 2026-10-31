@@ -439,6 +439,7 @@ export default function MicroEmpire() {
                 resources={snap.resources}
                 onResearch={(id) => game?.researchTech(id)}
                 onClose={() => setShowTech(false)}
+                time={{ year: snap.time.year, season: snap.time.season, dayInSeason: snap.time.dayInSeason }}
               />
             )}
 
