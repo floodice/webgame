@@ -237,9 +237,6 @@ export class Game {
     this.population.tick(this.resources, this.buildings.getAll(), this.tech);
     this.buildings.tick(this.population.workers.worker);
     this.events.tick(timeSn, this.resources, this.population, this.buildings);
-    if (this.events.getActiveEvent() && !this.events.getActiveEvent()!.resolved) {
-      this.paused = true;
-    }
     this.trade.setTradeBonus(this.tech.getTradeBonus());
     this.trade.tick(timeSn);
     this.military.tick(timeSn, this.resources, this.population, this.buildings, this.tech);
@@ -295,7 +292,6 @@ export class Game {
 
   resolveEvent(choiceIndex: number) {
     this.events.resolve(choiceIndex, this.resources, this.population, this.buildings);
-    this.paused = false;
     this.emitSnapshot();
   }
 
