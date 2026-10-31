@@ -66,6 +66,7 @@ export class Game {
   hoverTile: { x: number; y: number } | null = null;
   placingBuilding: string | null = null;
   paused = false;
+  private pausedByEvent = false;
   speed = 1;
 
   private onUpdate: GameUpdateCallback = () => {};
@@ -236,7 +237,17 @@ export class Game {
     this.resources.tick(this.buildings.getAll(), timeSn.season, this.population.snapshot(), this.tech);
     this.population.tick(this.resources, this.buildings.getAll(), this.tech);
     this.buildings.tick(this.population.workers.worker);
+
+    const hadEvent = !!this.events.getActiveEvent();
     this.events.tick(timeSn, this.resources, this.population, this.buildings);
+
+    if (!hadEvent && this.events.getActiveEvent() && !this.events.getActiveEvent()!.resolved) {
+      if (!this.tech.getCurrent()) {
+        this.pausedByEvent = true;
+        this.paused = true;
+      }
+    }
+
     this.trade.setTradeBonus(this.tech.getTradeBonus());
     this.trade.tick(timeSn);
     this.military.tick(timeSn, this.resources, this.population, this.buildings, this.tech);
@@ -292,6 +303,10 @@ export class Game {
 
   resolveEvent(choiceIndex: number) {
     this.events.resolve(choiceIndex, this.resources, this.population, this.buildings);
+    if (this.pausedByEvent) {
+      this.pausedByEvent = false;
+      this.paused = false;
+    }
     this.emitSnapshot();
   }
 
