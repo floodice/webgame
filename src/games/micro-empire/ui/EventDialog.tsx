@@ -6,7 +6,7 @@ interface Props {
 }
 
 export default function EventDialog({ event, onResolve }: Props) {
-  const { def } = event;
+  const { def, affordable } = event;
 
   return (
     <div style={{
@@ -34,34 +34,42 @@ export default function EventDialog({ event, onResolve }: Props) {
           {def.description}
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {def.choices.map((choice, i) => (
-            <button
-              key={i}
-              onClick={() => onResolve(i)}
-              style={{
-                padding: '10px 16px',
-                borderRadius: 10,
-                border: '1px solid rgba(255,255,255,0.12)',
-                background: 'rgba(255,255,255,0.05)',
-                color: '#e0d0f0',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
-              }}
-            >
-              {choice.label}
-            </button>
-          ))}
+          {def.choices.map((choice, i) => {
+            const canAfford = affordable?.[i] !== false;
+            return (
+              <button
+                key={i}
+                onClick={() => canAfford && onResolve(i)}
+                disabled={!canAfford}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 10,
+                  border: `1px solid ${canAfford ? 'rgba(255,255,255,0.12)' : 'rgba(244,67,54,0.2)'}`,
+                  background: canAfford ? 'rgba(255,255,255,0.05)' : 'rgba(244,67,54,0.05)',
+                  color: canAfford ? '#e0d0f0' : '#886060',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: canAfford ? 'pointer' : 'not-allowed',
+                  textAlign: 'left',
+                  transition: 'all 0.15s',
+                  opacity: canAfford ? 1 : 0.6,
+                }}
+                onMouseEnter={e => {
+                  if (!canAfford) return;
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+                }}
+                onMouseLeave={e => {
+                  if (!canAfford) return;
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+                }}
+              >
+                {choice.label}
+                {!canAfford && <span style={{ fontSize: 10, color: '#f44336', marginLeft: 6 }}>（资源不足）</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

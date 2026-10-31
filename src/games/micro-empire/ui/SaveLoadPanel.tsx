@@ -92,6 +92,19 @@ export default function SaveLoadPanel({ onSave, onLoad, onCloudSave, onCloudLoad
     setLoading(false);
   };
 
+  const [confirmAction, setConfirmAction] = useState<{ type: 'load' | 'delete' | 'cloudLoad' | 'cloudDelete'; slot: string } | null>(null);
+
+  const handleConfirmAction = () => {
+    if (!confirmAction) return;
+    switch (confirmAction.type) {
+      case 'load': onLoad(confirmAction.slot); break;
+      case 'delete': deleteSave(confirmAction.slot); break;
+      case 'cloudLoad': handleCloudLoad(confirmAction.slot); break;
+      case 'cloudDelete': handleCloudDelete(confirmAction.slot); break;
+    }
+    setConfirmAction(null);
+  };
+
   return (
     <div style={{
       position: 'absolute',
@@ -115,6 +128,22 @@ export default function SaveLoadPanel({ onSave, onLoad, onCloudSave, onCloudLoad
           <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>💾 存档管理</h3>
           <button onClick={onClose} style={closeBtnStyle}>✕</button>
         </div>
+
+        {/* Confirm dialog */}
+        {confirmAction && (
+          <div style={{
+            marginBottom: 12, padding: '12px 16px', borderRadius: 10,
+            background: 'rgba(255,152,0,0.08)', border: '1px solid rgba(255,152,0,0.2)',
+          }}>
+            <div style={{ fontSize: 12, color: '#ffa726', marginBottom: 10, fontWeight: 700 }}>
+              ⚠️ {confirmAction.type.includes('delete') ? '确定要删除该存档吗？此操作不可撤销。' : '确定要加载该存档吗？当前未保存的进度将丢失。'}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleConfirmAction} style={{ ...saveBtnStyle, background: 'rgba(255,152,0,0.15)', borderColor: 'rgba(255,152,0,0.3)', color: '#ffa726' }}>确认</button>
+              <button onClick={() => setConfirmAction(null)} style={{ ...loadBtnStyle, flex: 1 }}>取消</button>
+            </div>
+          </div>
+        )}
 
         {/* Tab switcher */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
@@ -146,9 +175,9 @@ export default function SaveLoadPanel({ onSave, onLoad, onCloudSave, onCloudLoad
                     )}
                     {exists && (
                       <>
-                        <button onClick={() => onLoad(slot)} style={loadBtnStyle}>加载</button>
+                        <button onClick={() => setConfirmAction({ type: 'load', slot })} style={loadBtnStyle}>加载</button>
                         {slot !== 'auto' && (
-                          <button onClick={() => deleteSave(slot)} style={deleteBtnStyle}>删除</button>
+                          <button onClick={() => setConfirmAction({ type: 'delete', slot })} style={deleteBtnStyle}>删除</button>
                         )}
                       </>
                     )}
@@ -250,8 +279,8 @@ export default function SaveLoadPanel({ onSave, onLoad, onCloudSave, onCloudLoad
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => handleCloudSave(s.slot)} style={saveBtnStyle}>覆盖</button>
-                      <button onClick={() => handleCloudLoad(s.slot)} style={loadBtnStyle}>加载</button>
-                      <button onClick={() => handleCloudDelete(s.slot)} style={deleteBtnStyle}>删除</button>
+                      <button onClick={() => setConfirmAction({ type: 'cloudLoad', slot: s.slot })} style={loadBtnStyle}>加载</button>
+                      <button onClick={() => setConfirmAction({ type: 'cloudDelete', slot: s.slot })} style={deleteBtnStyle}>删除</button>
                     </div>
                   </div>
                 ))}

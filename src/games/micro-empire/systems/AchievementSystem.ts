@@ -42,8 +42,9 @@ export class AchievementSystem {
     this.check('pop_200', population.total >= 200);
     this.check('gold_500', resources.get('gold') >= 500);
     this.check('gold_2000', resources.get('gold') >= 2000);
-    this.check('tech_5', tech.snapshot().researched.length >= 5);
-    this.check('tech_all', tech.snapshot().researched.length >= Object.keys(TECH_DEFS).length);
+    const techSnap = tech.snapshot();
+    this.check('tech_5', techSnap.researched.length >= 5);
+    this.check('tech_all', techSnap.researched.length >= Object.keys(TECH_DEFS).length);
     const builtCount = buildings.getAll().filter(b => b.constructionLeft === 0).length;
     this.check('buildings_10', builtCount >= 10);
     this.check('buildings_25', builtCount >= 25);
@@ -67,10 +68,11 @@ export class AchievementSystem {
   }
 
   serialize() {
-    return { unlocked: [...this.unlocked] };
+    return { unlocked: [...this.unlocked], victoryCount: this.victoryCount };
   }
 
   deserialize(data: any) {
     if (data.unlocked) this.unlocked = new Set(data.unlocked);
+    if (typeof data.victoryCount === 'number') this.victoryCount = data.victoryCount;
   }
 }

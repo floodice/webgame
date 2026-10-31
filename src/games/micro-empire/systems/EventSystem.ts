@@ -7,6 +7,7 @@ import { type BuildingSystem } from './BuildingSystem';
 export interface ActiveEvent {
   def: GameEventDef;
   resolved: boolean;
+  affordable: boolean[];
 }
 
 export class EventSystem {
@@ -24,7 +25,7 @@ export class EventSystem {
 
   tick(
     time: { day: number; season: number; year: number },
-    _resources: ResourceSystem,
+    resources: ResourceSystem,
     population: PopulationSystem,
     _buildings: BuildingSystem,
   ) {
@@ -41,12 +42,27 @@ export class EventSystem {
       if (time.day < evt.minDay) continue;
       if (evt.condition && !evt.condition(ctx)) continue;
       if (Math.random() < evt.probability) {
-        this.activeEvent = { def: evt, resolved: false };
+        this.activeEvent = {
+          def: evt,
+          resolved: false,
+          affordable: this.calcAffordable(evt, resources),
+        };
         this.cooldown = 150 + Math.floor(Math.random() * 100);
         this.bus.emit('event:triggered', evt.id);
         return;
       }
     }
+  }
+
+  private calcAffordable(evt: GameEventDef, resources: ResourceSystem): boolean[] {
+    return evt.choices.map(choice => {
+      for (const eff of choice.effects) {
+        if (eff.type === 'resource' && eff.target && eff.value < 0) {
+          if (resources.get(eff.target as any) < -eff.value) return false;
+        }
+      }
+      return true;
+    });
   }
 
   resolve(choiceIndex: number, resources: ResourceSystem, population: PopulationSystem, buildings?: BuildingSystem) {
