@@ -371,6 +371,12 @@ export default function MicroEmpire() {
                 onOpenSettings={() => setShowSettings(true)}
                 tradeAvailable={snap.tradeAvailable}
                 nextInvasion={snap.military.nextInvasion}
+                currentResearch={snap.tech.currentResearch ? {
+                  label: TECH_DEFS[snap.tech.currentResearch]?.label ?? snap.tech.currentResearch,
+                  icon: TECH_DEFS[snap.tech.currentResearch]?.icon ?? '🔬',
+                  progress: snap.tech.researchProgress,
+                  total: snap.tech.researchTotal,
+                } : null}
               />
             </div>
 

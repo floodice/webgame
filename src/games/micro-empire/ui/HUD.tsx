@@ -22,13 +22,14 @@ interface Props {
   onOpenSettings: () => void;
   tradeAvailable: boolean;
   nextInvasion: number;
+  currentResearch?: { label: string; icon: string; progress: number; total: number } | null;
 }
 
 export default function HUD({
   dayInSeason, season, year, seasonProgress, paused, speed,
   population, defense, achievementCount, achievementTotal,
   onTogglePause, onSetSpeed, onOpenPopulation, onOpenTech, onOpenSave, onOpenTrade, onOpenStats, onOpenLeaderboard, onOpenSettings,
-  tradeAvailable, nextInvasion,
+  tradeAvailable, nextInvasion, currentResearch,
 }: Props) {
   const seasonName = SEASON_NAMES[season as Season] ?? '?';
   const happinessColor = population.happiness >= 70 ? '#4caf50' : population.happiness >= 40 ? '#ffc107' : '#f44336';
@@ -66,6 +67,27 @@ export default function HUD({
         <span style={{ fontSize: 11, color: '#ff9800' }}>🛡️ {defense}</span>
         {nextInvasion <= 20 && (
           <span style={{ fontSize: 11, color: '#f44336', fontWeight: 700, animation: 'pulse 1s infinite' }}>⚠️ 入侵将至!</span>
+        )}
+        {currentResearch && (
+          <span
+            onClick={onOpenTech}
+            style={{ fontSize: 11, color: '#b388ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+            title={`正在研究: ${currentResearch.label} (${currentResearch.progress}/${currentResearch.total})`}
+          >
+            🔬 {currentResearch.icon}{currentResearch.label}
+            <span style={{
+              display: 'inline-block', width: 32, height: 5, borderRadius: 3,
+              background: 'rgba(255,255,255,0.1)', verticalAlign: 'middle',
+            }}>
+              <span style={{
+                display: 'block', height: '100%', borderRadius: 3,
+                width: `${currentResearch.total > 0 ? (currentResearch.progress / currentResearch.total) * 100 : 0}%`,
+                background: 'linear-gradient(90deg, #7c4dff, #b388ff)',
+                transition: 'width 0.5s',
+              }} />
+            </span>
+            <span style={{ fontSize: 9, color: '#9575cd' }}>{currentResearch.progress}/{currentResearch.total}</span>
+          </span>
         )}
       </div>
 

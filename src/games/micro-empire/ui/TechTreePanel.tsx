@@ -57,29 +57,41 @@ export default function TechTreePanel({ researched, currentResearch, researchPro
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: 16 }}>✕</button>
         </div>
 
-        {currentResearch && (
-          <div style={{
-            padding: '10px 14px',
-            borderRadius: 10,
-            background: 'rgba(124,77,255,0.1)',
-            border: '1px solid rgba(124,77,255,0.2)',
-            marginBottom: 14,
-          }}>
-            <div style={{ fontSize: 12, color: '#b388ff', fontWeight: 700, marginBottom: 4 }}>
-              正在研究: {TECH_DEFS[currentResearch]?.icon} {TECH_DEFS[currentResearch]?.label}
+        {currentResearch && (() => {
+          const pct = researchTotal > 0 ? Math.round((researchProgress / researchTotal) * 100) : 0;
+          const remaining = researchTotal - researchProgress;
+          return (
+            <div style={{
+              padding: '12px 16px',
+              borderRadius: 12,
+              background: 'rgba(124,77,255,0.12)',
+              border: '1px solid rgba(124,77,255,0.3)',
+              marginBottom: 14,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: '#b388ff', fontWeight: 700 }}>
+                  🔬 正在研究: {TECH_DEFS[currentResearch]?.icon} {TECH_DEFS[currentResearch]?.label}
+                </span>
+                <span style={{ fontSize: 12, color: '#ce93d8', fontWeight: 700 }}>{pct}%</span>
+              </div>
+              <div style={{ height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  borderRadius: 5,
+                  width: `${pct}%`,
+                  minWidth: researchProgress > 0 ? 4 : 0,
+                  background: 'linear-gradient(90deg, #7c4dff, #b388ff, #ce93d8)',
+                  transition: 'width 0.3s',
+                  boxShadow: '0 0 8px rgba(124,77,255,0.4)',
+                }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                <span style={{ fontSize: 11, color: '#9575cd' }}>进度 {researchProgress}/{researchTotal} 天</span>
+                <span style={{ fontSize: 11, color: '#9575cd' }}>剩余 {remaining} 天</span>
+              </div>
             </div>
-            <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.1)' }}>
-              <div style={{
-                height: '100%',
-                borderRadius: 3,
-                width: `${researchTotal > 0 ? (researchProgress / researchTotal) * 100 : 0}%`,
-                background: 'linear-gradient(90deg, #7c4dff, #b388ff)',
-                transition: 'width 0.3s',
-              }} />
-            </div>
-            <div style={{ fontSize: 10, color: '#888', marginTop: 4 }}>{researchProgress}/{researchTotal} 回合</div>
-          </div>
-        )}
+          );
+        })()}
 
         <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
           {TECH_BRANCHES.map(b => (
