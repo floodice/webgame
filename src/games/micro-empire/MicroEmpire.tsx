@@ -65,8 +65,9 @@ export default function MicroEmpire() {
   }, []);
 
   const pausedByPanel = useRef(false);
-  // Only panels that need full attention pause the game; informational panels keep running
-  const pausingPanelOpen = showSave || showSettings;
+  const hasActiveResearch = !!snap?.tech.currentResearch;
+  // Tech tree: pause only when no research in progress; save/settings always pause
+  const pausingPanelOpen = showSave || showSettings || (showTech && !hasActiveResearch);
   const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard || showSettings;
 
   useEffect(() => {
