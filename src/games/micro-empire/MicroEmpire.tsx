@@ -65,21 +65,23 @@ export default function MicroEmpire() {
   }, []);
 
   const pausedByPanel = useRef(false);
+  // Only panels that need full attention pause the game; informational panels keep running
+  const pausingPanelOpen = showSave || showSettings;
   const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard || showSettings;
 
   useEffect(() => {
     const game = gameRef.current;
     if (!game) return;
-    if (anyPanelOpen && !game.paused) {
+    if (pausingPanelOpen && !game.paused) {
       pausedByPanel.current = true;
       game.paused = true;
       game['emitSnapshot']();
-    } else if (!anyPanelOpen && pausedByPanel.current) {
+    } else if (!pausingPanelOpen && pausedByPanel.current) {
       pausedByPanel.current = false;
       game.paused = false;
       game['emitSnapshot']();
     }
-  }, [anyPanelOpen]);
+  }, [pausingPanelOpen]);
 
   const updateSnap = useCallback((s: GameSnapshot) => {
     setSnap({ ...s });
