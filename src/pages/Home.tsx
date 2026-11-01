@@ -4,6 +4,7 @@ import { games, type CategoryKey } from '../utils/gameRegistry';
 import { getHighScore } from '../utils/storage';
 import { useI18n, fmt } from '../i18n';
 import { getGameName, getGameDesc, getCatLabel, getCatDesc } from '../i18n/gameNames';
+import { useSEO } from '../hooks/useSEO';
 
 /* ── Wacky category visuals ── */
 interface CatStyle {
@@ -82,6 +83,12 @@ export default function Home() {
   const { t } = useI18n();
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; emoji: string }[]>([]);
+
+  useSEO({
+    title: 'Free Online Browser Games - 20+ Instant Play Games',
+    description: 'Play 20+ free browser games instantly — 2048, Tetris, Snake, Pac-Man, Minesweeper, Sudoku, Flappy Bird and more. No downloads, no ads, just fun!',
+    path: '/',
+  });
 
   const scrollTo = (cat: string) => {
     sectionRefs.current[cat]?.scrollIntoView({ behavior: 'smooth', block: 'start' });

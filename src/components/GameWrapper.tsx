@@ -1,8 +1,11 @@
 import { type ReactNode, useMemo, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n';
+import { useSEO } from '../hooks/useSEO';
 
 interface Props {
   title: string;
+  description?: string;
   score?: number;
   highScore?: number;
   children: ReactNode;
@@ -26,9 +29,16 @@ const FUN_FOOTERS = [
   '🔥 火力全开！', '🌈 彩虹能量！', '🪩 迪斯科！', '🧸 抱抱~',
 ];
 
-export default function GameWrapper({ title, score, highScore, children, controls, scoreLabel }: Props) {
+export default function GameWrapper({ title, description, score, highScore, children, controls, scoreLabel }: Props) {
   const { t } = useI18n();
+  const location = useLocation();
   const sl = scoreLabel ?? t.common.score;
+
+  useSEO({
+    title: `Play ${title} Online Free`,
+    description: description ?? `Play ${title} for free in your browser. No downloads, no ads — just instant fun on GameHub!`,
+    path: location.pathname,
+  });
   const [scoreAnim, setScoreAnim] = useState(false);
 
   useEffect(() => {
