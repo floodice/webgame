@@ -1,7 +1,9 @@
 import { type ReactNode, useMemo, useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n';
-import { useSEO } from '../hooks/useSEO';
+import { useSEO, BASE_URL, CATEGORY_MAP } from '../hooks/useSEO';
+import { games } from '../utils/gameRegistry';
+import { getGameName } from '../i18n/gameNames';
 
 interface Props {
   title: string;
@@ -34,10 +36,27 @@ export default function GameWrapper({ title, description, score, highScore, chil
   const location = useLocation();
   const sl = scoreLabel ?? t.common.score;
 
+  const currentGame = games.find(g => g.path === location.pathname);
+  const desc = description ?? `Play ${title} for free in your browser. No downloads, no ads — just instant fun on GameHub!`;
+  const genre = currentGame ? (CATEGORY_MAP[currentGame.categoryKey] ?? 'Game') : 'Game';
+
+  const relatedGames = useMemo(() => {
+    if (!currentGame) return [];
+    const sameCategory = games.filter(g => g.categoryKey === currentGame.categoryKey && g.id !== currentGame.id);
+    const others = games.filter(g => g.categoryKey !== currentGame.categoryKey && g.id !== currentGame.id);
+    return [...sameCategory, ...others].slice(0, 4);
+  }, [currentGame]);
+
   useSEO({
     title: `Play ${title} Online Free`,
-    description: description ?? `Play ${title} for free in your browser. No downloads, no ads — just instant fun on GameHub!`,
+    description: desc,
     path: location.pathname,
+    gameSchema: {
+      name: title,
+      description: desc,
+      genre,
+      url: `${BASE_URL}${location.pathname}`,
+    },
   });
   const [scoreAnim, setScoreAnim] = useState(false);
 
@@ -273,6 +292,67 @@ export default function GameWrapper({ title, description, score, highScore, chil
         >
           {children}
         </div>
+
+        {/* Breadcrumb navigation */}
+        <nav aria-label="Breadcrumb" style={{
+          marginTop: 24,
+          padding: '10px 16px',
+          borderRadius: 12,
+          background: 'rgba(40,15,80,0.5)',
+          fontSize: 13,
+          color: '#a080c0',
+          fontWeight: 600,
+        }}>
+          <Link to="/" style={{ color: '#ff6baf', textDecoration: 'none' }}>🏠 GameHub</Link>
+          <span style={{ margin: '0 8px', opacity: 0.5 }}>/</span>
+          <span style={{ color: '#c8a0e0' }}>{title}</span>
+        </nav>
+
+        {/* Related games */}
+        {relatedGames.length > 0 && (
+          <section style={{ marginTop: 28 }}>
+            <h2 style={{
+              fontSize: 18, fontWeight: 800, color: '#fff',
+              marginBottom: 14, textAlign: 'center',
+            }}>
+              🎮 {t.common.play ?? 'More Games'}
+            </h2>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+              gap: 12,
+            }}>
+              {relatedGames.map(game => (
+                <Link
+                  key={game.id}
+                  to={game.path}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '12px 14px', borderRadius: 14,
+                    background: 'rgba(40,15,80,0.6)',
+                    border: '2px solid rgba(255,45,149,0.2)',
+                    textDecoration: 'none', color: '#fff',
+                    fontSize: 13, fontWeight: 700,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#ff2d95';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,45,149,0.2)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'rgba(255,45,149,0.2)';
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <span style={{ fontSize: 22 }}>{game.icon}</span>
+                  <span>{getGameName(t, game.nameKey)}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Fun footer */}
         <div style={{

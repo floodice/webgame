@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import NotFound from './pages/NotFound';
 import { lazy, Suspense } from 'react';
 import { I18nProvider } from './i18n';
 
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/game/connect" element={<Connect />} />
             <Route path="/game/nonogram" element={<Nonogram />} />
             <Route path="/game/micro-empire" element={<MicroEmpire />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Suspense>

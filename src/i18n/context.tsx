@@ -57,7 +57,12 @@ const Ctx = createContext<I18nCtx>({
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(detectLang);
+  const [lang, setLangState] = useState<Lang>(() => {
+    const detected = detectLang();
+    document.documentElement.lang = detected;
+    document.documentElement.dir = detected === 'ar' ? 'rtl' : 'ltr';
+    return detected;
+  });
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);

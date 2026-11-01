@@ -1,6 +1,8 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useI18n, LANG_LIST } from '../i18n';
+import { games } from '../utils/gameRegistry';
+import { getGameName } from '../i18n/gameNames';
 
 const HEADER_EMOJIS = ['🎮', '👾', '🕹️', '🎪', '🤪', '💥', '🎲', '🃏', '🧩', '🎯', '🔥', '⚡', '🌈', '🦄', '🍭', '🧸', '🪩', '🎠', '🍬', '🪅'];
 
@@ -185,6 +187,75 @@ export default function Layout() {
       <main style={{ flex: 1 }}>
         <Outlet />
       </main>
+
+      {/* SEO Footer */}
+      <footer style={{
+        borderTop: '3px solid',
+        borderImage: 'linear-gradient(90deg, #ff2d95, #ff6b2b, #ffe93e, #39ff14, #00f0ff, #bf5af2) 1',
+        background: 'rgba(20,8,38,0.95)',
+        padding: '36px 24px 28px',
+        marginTop: 'auto',
+      }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          {/* Game links grid */}
+          <nav aria-label="All Games" style={{ marginBottom: 24 }}>
+            <h3 style={{
+              fontSize: 14, fontWeight: 800, color: '#ff6baf',
+              marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1.5,
+            }}>
+              🎮 {t.cat.all} Games
+            </h3>
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 8,
+            }}>
+              {games.map(game => (
+                <Link
+                  key={game.id}
+                  to={game.path}
+                  style={{
+                    fontSize: 12, fontWeight: 600, color: '#a080c0',
+                    textDecoration: 'none', padding: '4px 10px',
+                    borderRadius: 8, background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = '#ff6baf';
+                    e.currentTarget.style.borderColor = 'rgba(255,45,149,0.3)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = '#a080c0';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                  }}
+                >
+                  {game.icon} {getGameName(t, game.nameKey)}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          {/* Description + Copyright */}
+          <div style={{
+            paddingTop: 18,
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between',
+            alignItems: 'center', gap: 12,
+          }}>
+            <p style={{
+              fontSize: 12, color: '#7060a0', margin: 0, lineHeight: 1.8, maxWidth: 600,
+            }}>
+              GameHub — Play free online browser games instantly. 2048, Tetris, Snake, Pac-Man, Sudoku, Minesweeper and more.
+              No downloads, no ads, just fun. HTML5 games playable on desktop and mobile.
+            </p>
+            <p style={{
+              fontSize: 11, color: '#5a4a7a', margin: 0, fontWeight: 600,
+            }}>
+              © {new Date().getFullYear()} GameHub · game.getflovia.com
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
