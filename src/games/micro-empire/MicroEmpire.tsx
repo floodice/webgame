@@ -68,8 +68,6 @@ export default function MicroEmpire() {
   const hasActiveResearch = !!snap?.tech.currentResearch;
   // Tech tree: pause only when no research in progress; save/settings always pause
   const pausingPanelOpen = showSave || showSettings || (showTech && !hasActiveResearch);
-  const anyPanelOpen = showPopulation || showTech || showTrade || showSave || showStats || showLeaderboard || showSettings;
-
   useEffect(() => {
     const game = gameRef.current;
     if (!game) return;
